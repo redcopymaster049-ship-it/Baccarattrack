@@ -50,10 +50,10 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 </style></head><body>
 
 <!-- FIREBASE GOOGLE LOGIN OVERLAY -->
-<div id="firebaseAuthOverlay" style="display:none;">
+<div id="firebaseAuthOverlay">
   <div class="auth-card">
-    <h2>🔒 Protected System</h2>
-    <p>Sign in with your authorized Google Account.</p>
+    <h2>♠ Baccarat Tracker</h2>
+    <p>Sign in with any Google Account to continue.</p>
     <button id="googleLoginBtn" class="google-btn">
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.48 16.01 5.5 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.18-.53-.28-1.1-.28-1.8s.1-1.27.28-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0 5.5 0 2.48 1.99.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
       Sign in with Google
@@ -83,14 +83,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
 <div id="dr"><div class="bk"></div><div class="pn">
 <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
-
-<!-- ADMIN PANEL SECTION -->
-<div class="card" id="adminPanelCard" style="display:none; border: 1px solid var(--gold);">
-  <h3 style="color:var(--gold);">👑 Admin Dashboard</h3>
-  <div class="sub">Manage Authorized Users</div>
-  <div id="userRequestsList" style="margin-top:10px; max-height:180px; overflow-y:auto;"></div>
-</div>
-
 <div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out (Firebase)</button></div></div>
 <div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
 <div class="card"><h3>Settings</h3><div id="fm"></div></div>
@@ -105,11 +97,10 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
 </div></div>
 
-<!-- FIREBASE GOOGLE AUTH & FIRESTORE ADMIN MODULE (REDIRECT METHOD) -->
+<!-- FIREBASE GOOGLE AUTH MODULE (OPEN ACCESS FOR ANY GOOGLE ACCOUNT) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_I0gK6RXMSCBzkbTKZ-S7GZOZ_PM1uFY",
@@ -121,90 +112,29 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     measurementId: "G-FXCBY908CQ"
   };
 
-  const MASTER_ADMIN_UID = "RIZhOGckzAecBjs5mXm6T4afpig2";
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
   const overlay = document.getElementById('firebaseAuthOverlay');
   const authMsg = document.getElementById('authMsg');
   const googleLoginBtn = document.getElementById('googleLoginBtn');
   const signOutBtn = document.getElementById('signOutBtn');
-  const adminPanelCard = document.getElementById('adminPanelCard');
-  const userRequestsList = document.getElementById('userRequestsList');
 
-  async function loadUserRequests() {
-    userRequestsList.innerHTML = 'Loading users...';
-    try {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const u = docSnap.data();
-        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--line); font-size:12px;">
-          <div><b>${u.email || 'No Email'}</b><br><span style="color:var(--mut)">${u.uid}</span><br>Status: <b style="color:${u.status==='approved'?'var(--t)':'var(--gold)'}">${u.status}</b></div>
-          <div>
-            ${u.status !== 'approved' ? `<button class="ic" data-approve="${u.uid}" style="background:var(--t); color:#fff; padding:3px 6px; font-size:11px; margin-right:4px;">Approve</button>` : ''}
-            <button class="ic" data-delete="${u.uid}" style="background:var(--b); color:#fff; padding:3px 6px; font-size:11px;">Remove</button>
-          </div>
-        </div>`;
-      });
-      userRequestsList.innerHTML = html || 'No users found.';
-    } catch (e) {
-      userRequestsList.innerHTML = 'Error loading users.';
-    }
-  }
-
-  userRequestsList.onclick = async (e) => {
-    const approveUid = e.target.dataset.approve;
-    const deleteUid = e.target.dataset.delete;
-    if (approveUid) {
-      await setDoc(doc(db, "users", approveUid), { status: "approved" }, { merge: true });
-      loadUserRequests();
-    }
-    if (deleteUid) {
-      await deleteDoc(doc(db, "users", deleteUid));
-      loadUserRequests();
-    }
-  };
-
-  // Suriin ang redirect result kung galing sa Google login page
-  getRedirectResult(auth).catch((err) => {
-    authMsg.textContent = 'Login Error: ' + err.message;
-    overlay.style.display = 'flex';
-  });
-
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, (user) => {
     if (user) {
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (user.uid === MASTER_ADMIN_UID) {
-        if (!userSnap.exists()) {
-          await setDoc(userRef, { uid: user.uid, email: user.email, status: "approved", role: "admin" });
-        }
-        overlay.style.display = 'none';
-        adminPanelCard.style.display = 'block';
-        loadUserRequests();
-      } else {
-        if (userSnap.exists() && userSnap.data().status === "approved") {
-          overlay.style.display = 'none';
-        } else {
-          await setDoc(userRef, { uid: user.uid, email: user.email, status: "pending", role: "user" }, { merge: true });
-          overlay.style.display = 'flex';
-          authMsg.innerHTML = `Access Pending. Naghihintay ng aprubal mula sa Admin.<br><span style="color:var(--mut); font-size:10px;">UID: ${user.uid}</span>`;
-        }
-      }
+      overlay.style.display = 'none';
     } else {
       overlay.style.display = 'flex';
-      adminPanelCard.style.display = 'none';
     }
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Redirecting to Google...';
-    signInWithRedirect(auth, provider);
+    authMsg.textContent = 'Connecting to Google...';
+    signInWithPopup(auth, provider)
+      .catch((err) => {
+        authMsg.textContent = 'Login Error: ' + err.message;
+      });
   };
 
   signOutBtn.onclick = () => {
@@ -379,7 +309,7 @@ function replay(H){const m0=LIVE?MM:null;let step=m0?m0.step:0,pnl=0,w=0,stop=nu
   if(!stop&&sd){const bk=S.bankroll+carry+pnl;const U=baseNow(),base0=S.prog==='tvc'?(ledger.length?ledger[0]+U:U):U*units(step),mult=S.prog==='tvc'?Math.ceil(base0/U-1e-9):Math.round(base0/U),want=Math.max(1,mult)*U,cap=Math.floor(Math.min(bk*S.maxBetPct/100,S.maxBet>0?S.maxBet:Infinity)/U+1e-9)*U;let amt=Math.min(want,cap);amt=Math.max(0,Math.round(amt*100)/100);if(amt>0)bet={side:sd,amt,step,U,m:Math.round(amt/U)}}
   if(i===H.length)return{bets,pnl,step,stop,wagered:w,next:bet,sg,resets,sn,sh,trk,ledger,cyc,recov,evt};
   
-  const r=H[i].r,tk={i,sig:ok(sg.side)?sg.side:null,ov:H[i].ov||null,bet:bet?bet.side:null,amt:bet?bet.amt:0,r,d:0};trk.push(tk);if(ok(sg.side)&&r!=='T'){sn++;if(sg.side===r)sh++}if(bet){let d=0,won=false;if(r==='T'){d=0}else if(r===bet.side){won=true;d=bet.side==='B'?bet.amt*(1-S.comm/100):bet.amt}else d=-bet.amt;
+  const r=H[i].r,tk={i,sig:ok(sg.side)?sg.side:null,ov:H[i].ov||null,bet:bet?bet.side:null,amt:bet?bet.amt:0,r,d:0};trk.push(tk);if(ok(sg.side)&&r!=='T'){sn++;if(sg.side===r}if(bet){let d=0,won=false;if(r==='T'){d=0}else if(r===bet.side){won=true;d=bet.side==='B'?bet.amt*(1-S.comm/100):bet.amt}else d=-bet.amt;
    w+=bet.amt;pnl+=d;tk.d=d;bets.push({i,...bet,r,d});
    if(r!=='T'){if(S.prog==='tvc'){if(won){cyc+=d;recov+=ledger.length?ledger[0]:0;ledger.shift();if(cyc>0){ledger=[];cyc=0}}else{ledger.push(bet.amt);cyc-=bet.amt;if(S.maxSteps>0&&ledger.length>S.maxSteps){ledger=[];cyc=0;resets++}}step=ledger.length}else if(S.prog==='cyc2'){const o=step+1;cyc+=d;if(cyc>0){evt='Cycle profit positive (+'+cyc.toFixed(2)+') ➔ RESET to Step 1';step=0;cyc=0}else{step=won?Math.max(0,step-1):Math.min(step+1,19);evt=(won?'Win':'Loss')+' [Cycle P/L: '+cyc.toFixed(2)+'] ➔ Step '+o+(won?' DOWN to Step ':' UP to Step ')+(step+1)}}else{step=nextStep(step,won);if(step>(S.prog==='dal5'?(S.maxLevel>0?S.maxLevel*Math.max(1,S.rep)-1:Infinity):(S.maxSteps>0?S.maxSteps:Infinity))){step=0;resets++}}}}}
  }

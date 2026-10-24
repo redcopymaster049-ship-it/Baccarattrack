@@ -132,7 +132,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <!-- FIREBASE GOOGLE AUTH & FIRESTORE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -150,7 +150,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  // NAKALAGAY NA ANG ADMIN EMAIL MO RITO
   const ADMIN_EMAIL = "smoakshadow@gmail.com";
   const TRIAL_DURATION_MS = 30 * 60 * 1000; // 30 Minutes
 
@@ -213,7 +212,12 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     }
   }
 
-  getRedirectResult(auth).catch((err) => {
+  // Handle redirect result kapag bumalik na galing sa Google Login page
+  getRedirectResult(auth).then((result) => {
+    if (result && result.user) {
+      checkUserAccess(result.user);
+    }
+  }).catch((err) => {
     authMsg.textContent = 'Login Error: ' + err.message;
   });
 
@@ -228,8 +232,8 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Connecting to Google...';
-    signInWithPopup(auth, provider).catch((err) => {
+    authMsg.textContent = 'Redirecting to Google...';
+    signInWithRedirect(auth, provider).catch((err) => {
       authMsg.textContent = 'Login Error: ' + err.message;
     });
   };
@@ -595,7 +599,7 @@ function ladR(){const el=$('#mm');if(S.prog!=='dal5'){el.innerHTML='<div class="
 $('#mm').onclick=e=>{if(e.target.id==='ladOn'){S.prog='dal5';clearMM();sv('bc_set',S);form();render()}};
 function cyR(){const el=$('#cy');if(S.prog!=='cyc2'){el.innerHTML='<div class="sub">1-1-2-2-3-3 System.</div><div class="row" style="margin-top:8px"><button class="tg" id="cyOn">Activate 1-1-2-2-3-3</button></div>';return}
 const p=R.step,mult=Math.floor(p/2)+1,b=baseNow(),sg=x=>(x>=0?'+':'')+x.toFixed(2),seq=[];
-for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+'">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
+for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+' турында">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
 el.innerHTML='<div class="grid"><div>Step<b>'+(p+1)+' / 20</b></div><div>Multiplier<b>'+mult+'×</b></div><div>Next bet<b>'+(b*mult).toFixed(2)+'</b></div><div>Cycle P&amp;L<b class="'+(R.cyc>=0?'win':'loss')+'">'+sg(R.cyc)+'</b></div><div>Net P&amp;L (all shoes)<b class="'+(((MM.net||0)+R.pnl)>=0?'win':'loss')+'">'+sg((MM.net||0)+R.pnl)+'</b></div><div>Largest bet<b>'+(b*10).toFixed(2)+'</b></div></div><div style="margin:8px 0;line-height:2">'+seq.join('')+'</div><div class="sub">'+(R.evt||'No bets yet this shoe.')+'</div><div class="sub" style="margin-top:6px">At step 20 a further loss holds the bet at 10×. Cycle P&amp;L uses real payouts, so a Banker win (5% commission) pays slightly less than the bet. This reshapes risk only; the house edge is unchanged.</div>'}
 $('#cy').onclick=e=>{if(e.target.id==='cyOn'){S.prog='cyc2';clearMM();sv('bc_set',S);form();render()}};
 matchMedia('(prefers-color-scheme:light)').onchange=render;addEventListener('resize',render);

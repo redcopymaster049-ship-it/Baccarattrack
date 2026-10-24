@@ -58,6 +58,9 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 #adminModal .modal-content{background:var(--card);border:1px solid var(--line);border-radius:12px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;padding:16px}
 #adminList{overflow-y:auto;flex:1;margin-top:10px}
 .user-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+
+/* PROTECTED APP CONTAINER (ITATAGO HANGGA'T HINDI NAKAPAG-LOGIN) */
+#protectedApp { display: none; }
 </style></head><body>
 
 <!-- FIREBASE GOOGLE LOGIN OVERLAY -->
@@ -93,41 +96,44 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   </div>
 </div>
 
-<header><button class="ic" id="mn" aria-label="Menu">☰</button><b>♠ Baccarat Tracker</b>
-<div class="kv">Bankroll<span id="hb">0</span></div><div class="kv">MM P&amp;L<span id="hp">0</span></div></header>
-<main>
-<div class="card" id="sgc"><h3>Signal</h3><div class="sig" id="sg">—</div><div class="sub" id="ss"></div><div id="lm"></div></div>
-<div class="card"><h3>Bet Selection</h3><div class="warn" style="margin:0 0 8px">Tools for tracking and study. Patterns describe what has already happened. They do not predict what comes next.</div><div id="bs"></div></div>
+<!-- LAHAT NG ITO AY NAKATAGO HANGGA'T HINDI NAKAKA-LOGIN -->
+<div id="protectedApp">
+  <header><button class="ic" id="mn" aria-label="Menu">☰</button><b>♠ Baccarat Tracker</b>
+  <div class="kv">Bankroll<span id="hb">0</span></div><div class="kv">MM P&amp;L<span id="hp">0</span></div></header>
+  <main>
+  <div class="card" id="sgc"><h3>Signal</h3><div class="sig" id="sg">—</div><div class="sub" id="ss"></div><div id="lm"></div></div>
+  <div class="card"><h3>Bet Selection</h3><div class="warn" style="margin:0 0 8px">Tools for tracking and study. Patterns describe what has already happened. They do not predict what comes next.</div><div id="bs"></div></div>
 
-<div class="card"><h3>Bead Plate</h3><div class="scroll" id="sb"><canvas id="cb"></canvas></div></div>
-<div class="card"><h3>Big Road</h3><div class="scroll" id="sr"><canvas id="cr"></canvas></div></div>
-<div class="card"><div class="seg" id="sd"><button data-k="1" class="on">Big Eye Boy</button><button data-k="2">Small Road</button><button data-k="3">Cockroach Pig</button></div><div class="scroll" id="sx"><canvas id="cd"></canvas></div></div>
-<div class="card algo-ui"><h3>Pattern Library</h3><div class="warn" style="margin:0 0 6px">Descriptive tools for tracking and study. A pattern shows structure in past results. It does not predict the next hand.</div><div class="sub" style="margin-bottom:4px">Live detection across all patterns. Tap a pattern to track only that pattern.</div><div id="pl"></div></div>
-<div class="card algo-ui"><h3>Analysis Lab</h3><div class="sub">Scores every pattern and all algorithms against real outcomes. Hit rate counts decided hands only. Chance is about 50%.</div><div style="margin:6px 0"><button class="chip on" data-sc="cur">This shoe (live)</button><button class="chip" data-sc="all">All saved shoes</button><button class="chip" data-sc="sim">500 random shoes</button></div><div id="ps"></div><div class="row" style="margin-top:8px"><button class="tg" id="bt">Backtest all algorithms</button><button class="tg" id="lrp">Learner report</button></div><div class="sub" id="an"></div></div>
-<div class="card"><h3>Discipline &amp; Results</h3><div id="dsc"></div></div>
-<div class="card"><h3>Indicators</h3><div class="grid" id="st"></div></div>
-<div class="card log"><h3>Bet Log (last 10)</h3><div id="bl"></div></div>
-<p class="warn">Each hand is independent. Roadmaps and patterns have no predictive power, and no progression changes the house edge (Banker ≈ 1.06%, Player ≈ 1.24%, Tie ≈ 14.4%). For tracking and educational use only.</p>
-</main>
-<div id="inp"><div class="in">
-<div class="row"><button class="tg" id="nat">Natural</button><button class="tg" id="pp">P Pair</button><button class="tg" id="bp">B Pair</button><button class="tg" id="un">↶ Undo</button></div>
-<div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
-<div id="dr"><div class="bk"></div><div class="pn">
-<div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
-<div class="card" id="adminMenuCard" style="display:none"><h3>Admin Tools</h3><div class="row"><button class="tg" id="openAdminBtn" style="background:var(--gold);color:#111;font-weight:700">⚙️ Open Admin Panel</button></div></div>
-<div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out</button></div></div>
-<div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
-<div class="card"><h3>Settings</h3><div id="fm"></div></div>
-<div class="card"><h3>TVC +1 Money Management</h3><div id="tvc"></div></div>
-<div class="card"><h3>Stepped D’Alembert (11111-22222)</h3><div id="mm"></div></div>
-<div class="card"><h3>1-1-2-2-3-3 Step System (Cycle Reset)</h3><div id="cy"></div></div>
-<div class="card"><h3>Reality Check (Monte Carlo)</h3><div class="sub">Runs your current strategy and risk settings over random 70-hand shoes.</div><div class="row" style="margin-top:6px"><button class="tg" id="sim">Run simulation</button><button class="tg algo-ui" id="cmp">Compare all algorithms</button></div><div id="sr2" class="sub"></div></div>
-<div class="card"><h3>Math Lab</h3><div class="row"><button class="tg" id="ex1">Exact Odds</button><button class="tg" id="dl">Deal a Hand</button></div><div id="ml" class="sub"></div><div class="row" style="margin-top:8px"><button class="tg" id="kl">Kelly &amp; Risk of Ruin</button></div><div id="kr" class="sub"></div></div>
-<div class="card"><h3>Logic Self-Test</h3><div class="sub">Checks derived roads, Big Road layout, pattern detectors, the third-card tableau, and exact odds against known cases.</div><div class="row" style="margin-top:6px"><button class="tg" id="tst">Run self-test</button></div><div id="tr" style="font-size:12px"></div></div>
-<div class="card"><h3>Shoe History</h3><div class="hs" id="hs"></div></div>
-<div class="card"><h3>Backup</h3><textarea id="ex" placeholder="JSON backup"></textarea><div class="row" style="margin-top:6px"><button class="tg" id="be">Export (show JSON)</button><button class="tg" id="bi">Import</button></div></div>
-<p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
-</div></div>
+  <div class="card"><h3>Bead Plate</h3><div class="scroll" id="sb"><canvas id="cb"></canvas></div></div>
+  <div class="card"><h3>Big Road</h3><div class="scroll" id="sr"><canvas id="cr"></canvas></div></div>
+  <div class="card"><div class="seg" id="sd"><button data-k="1" class="on">Big Eye Boy</button><button data-k="2">Small Road</button><button data-k="3">Cockroach Pig</button></div><div class="scroll" id="sx"><canvas id="cd"></canvas></div></div>
+  <div class="card algo-ui"><h3>Pattern Library</h3><div class="warn" style="margin:0 0 6px">Descriptive tools for tracking and study. A pattern shows structure in past results. It does not predict the next hand.</div><div class="sub" style="margin-bottom:4px">Live detection across all patterns. Tap a pattern to track only that pattern.</div><div id="pl"></div></div>
+  <div class="card algo-ui"><h3>Analysis Lab</h3><div class="sub">Scores every pattern and all algorithms against real outcomes. Hit rate counts decided hands only. Chance is about 50%.</div><div style="margin:6px 0"><button class="chip on" data-sc="cur">This shoe (live)</button><button class="chip" data-sc="all">All saved shoes</button><button class="chip" data-sc="sim">500 random shoes</button></div><div id="ps"></div><div class="row" style="margin-top:8px"><button class="tg" id="bt">Backtest all algorithms</button><button class="tg" id="lrp">Learner report</button></div><div class="sub" id="an"></div></div>
+  <div class="card"><h3>Discipline &amp; Results</h3><div id="dsc"></div></div>
+  <div class="card"><h3>Indicators</h3><div class="grid" id="st"></div></div>
+  <div class="card log"><h3>Bet Log (last 10)</h3><div id="bl"></div></div>
+  <p class="warn">Each hand is independent. Roadmaps and patterns have no predictive power, and no progression changes the house edge (Banker ≈ 1.06%, Player ≈ 1.24%, Tie ≈ 14.4%). For tracking and educational use only.</p>
+  </main>
+  <div id="inp"><div class="in">
+  <div class="row"><button class="tg" id="nat">Natural</button><button class="tg" id="pp">P Pair</button><button class="tg" id="bp">B Pair</button><button class="tg" id="un">↶ Undo</button></div>
+  <div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
+  <div id="dr"><div class="bk"></div><div class="pn">
+  <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
+  <div class="card" id="adminMenuCard" style="display:none"><h3>Admin Tools</h3><div class="row"><button class="tg" id="openAdminBtn" style="background:var(--gold);color:#111;font-weight:700">⚙️ Open Admin Panel</button></div></div>
+  <div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out</button></div></div>
+  <div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
+  <div class="card"><h3>Settings</h3><div id="fm"></div></div>
+  <div class="card"><h3>TVC +1 Money Management</h3><div id="tvc"></div></div>
+  <div class="card"><h3>Stepped D’Alembert (11111-22222)</h3><div id="mm"></div></div>
+  <div class="card"><h3>1-1-2-2-3-3 Step System (Cycle Reset)</h3><div id="cy"></div></div>
+  <div class="card"><h3>Reality Check (Monte Carlo)</h3><div class="sub">Runs your current strategy and risk settings over random 70-hand shoes.</div><div class="row" style="margin-top:6px"><button class="tg" id="sim">Run simulation</button><button class="tg algo-ui" id="cmp">Compare all algorithms</button></div><div id="sr2" class="sub"></div></div>
+  <div class="card"><h3>Math Lab</h3><div class="row"><button class="tg" id="ex1">Exact Odds</button><button class="tg" id="dl">Deal a Hand</button></div><div id="ml" class="sub"></div><div class="row" style="margin-top:8px"><button class="tg" id="kl">Kelly &amp; Risk of Ruin</button></div><div id="kr" class="sub"></div></div>
+  <div class="card"><h3>Logic Self-Test</h3><div class="sub">Checks derived roads, Big Road layout, pattern detectors, the third-card tableau, and exact odds against known cases.</div><div class="row" style="margin-top:6px"><button class="tg" id="tst">Run self-test</button></div><div id="tr" style="font-size:12px"></div></div>
+  <div class="card"><h3>Shoe History</h3><div class="hs" id="hs"></div></div>
+  <div class="card"><h3>Backup</h3><textarea id="ex" placeholder="JSON backup"></textarea><div class="row" style="margin-top:6px"><button class="tg" id="be">Export (show JSON)</button><button class="tg" id="bi">Import</button></div></div>
+  <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
+  </div></div>
+</div>
 
 <!-- FIREBASE GOOGLE AUTH & FIRESTORE MODULE -->
 <script type="module">
@@ -155,6 +161,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
   const overlay = document.getElementById('firebaseAuthOverlay');
   const paywallOverlay = document.getElementById('paywallOverlay');
+  const protectedApp = document.getElementById('protectedApp');
   const authMsg = document.getElementById('authMsg');
   const googleLoginBtn = document.getElementById('googleLoginBtn');
   const signOutBtn = document.getElementById('signOutBtn');
@@ -195,24 +202,24 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     const now = Date.now();
     const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
-    if (isAdmin || data.authorized) {
+    if (isAdmin || data.authorized || now < data.trialEndsAt) {
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
+      protectedApp.style.display = 'block'; // IPINAKITA NA ANG MAIN APP
       if (isAdmin) adminMenuCard.style.display = 'block';
+      if (typeof form === 'function') form();
       if (typeof render === 'function') render();
-    } else if (now < data.trialEndsAt) {
-      overlay.style.display = 'none';
-      paywallOverlay.style.display = 'none';
-      if (typeof render === 'function') render();
-      setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
+      if (!isAdmin && now < data.trialEndsAt) {
+        setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
+      }
     } else {
       overlay.style.display = 'none';
+      protectedApp.style.display = 'none';
       paywallOverlay.style.display = 'flex';
       trialEmailDisplay.textContent = 'Account: ' + currentUser.email;
     }
   }
 
-  // Handle redirect result kapag bumalik na galing sa Google Login page
   getRedirectResult(auth).then((result) => {
     if (result && result.user) {
       checkUserAccess(result.user);
@@ -227,6 +234,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     } else {
       overlay.style.display = 'flex';
       paywallOverlay.style.display = 'none';
+      protectedApp.style.display = 'none'; // NAKATAGO ANG MAIN APP KAPAG WALA PA SA LOGIN
       adminMenuCard.style.display = 'none';
     }
   });
@@ -238,8 +246,8 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     });
   };
 
-  signOutBtn.onclick = () => { signOut(auth).then(() => document.getElementById('dr').classList.remove('open')); };
-  paywallSignOut.onclick = () => { signOut(auth); };
+  signOutBtn.onclick = () => { signOut(auth).then(() => { protectedApp.style.display = 'none'; document.getElementById('dr').classList.remove('open'); }); };
+  paywallSignOut.onclick = () => { signOut(auth).then(() => { paywallOverlay.style.display = 'none'; }); };
 
   requestAccessBtn.onclick = () => {
     alert('Na-send na ang hiling mo sa Admin. Mangyaring makipag-ugnayan sa Administrator para ma-approve ang iyong account.');
@@ -599,9 +607,9 @@ function ladR(){const el=$('#mm');if(S.prog!=='dal5'){el.innerHTML='<div class="
 $('#mm').onclick=e=>{if(e.target.id==='ladOn'){S.prog='dal5';clearMM();sv('bc_set',S);form();render()}};
 function cyR(){const el=$('#cy');if(S.prog!=='cyc2'){el.innerHTML='<div class="sub">1-1-2-2-3-3 System.</div><div class="row" style="margin-top:8px"><button class="tg" id="cyOn">Activate 1-1-2-2-3-3</button></div>';return}
 const p=R.step,mult=Math.floor(p/2)+1,b=baseNow(),sg=x=>(x>=0?'+':'')+x.toFixed(2),seq=[];
-for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+' турында">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
+for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+'">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
 el.innerHTML='<div class="grid"><div>Step<b>'+(p+1)+' / 20</b></div><div>Multiplier<b>'+mult+'×</b></div><div>Next bet<b>'+(b*mult).toFixed(2)+'</b></div><div>Cycle P&amp;L<b class="'+(R.cyc>=0?'win':'loss')+'">'+sg(R.cyc)+'</b></div><div>Net P&amp;L (all shoes)<b class="'+(((MM.net||0)+R.pnl)>=0?'win':'loss')+'">'+sg((MM.net||0)+R.pnl)+'</b></div><div>Largest bet<b>'+(b*10).toFixed(2)+'</b></div></div><div style="margin:8px 0;line-height:2">'+seq.join('')+'</div><div class="sub">'+(R.evt||'No bets yet this shoe.')+'</div><div class="sub" style="margin-top:6px">At step 20 a further loss holds the bet at 10×. Cycle P&amp;L uses real payouts, so a Banker win (5% commission) pays slightly less than the bet. This reshapes risk only; the house edge is unchanged.</div>'}
 $('#cy').onclick=e=>{if(e.target.id==='cyOn'){S.prog='cyc2';clearMM();sv('bc_set',S);form();render()}};
 matchMedia('(prefers-color-scheme:light)').onchange=render;addEventListener('resize',render);
-form();render();bootTrain();
+bootTrain();
 </script></body></html>

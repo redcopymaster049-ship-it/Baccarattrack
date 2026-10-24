@@ -132,7 +132,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <!-- FIREBASE GOOGLE AUTH & FIRESTORE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -177,7 +177,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     const now = Date.now();
 
     if (!snap.exists()) {
-      // New user: create record with 30 min trial
       const newUserData = {
         email: user.email,
         name: user.displayName || 'User',
@@ -198,23 +197,23 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
     if (isAdmin || data.authorized) {
-      // Allowed full access
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
       if (isAdmin) adminMenuCard.style.display = 'block';
     } else if (now < data.trialEndsAt) {
-      // Trial is still active
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
-      // Check again when trial expires
       setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
     } else {
-      // Trial expired & not authorized
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'flex';
       trialEmailDisplay.textContent = 'Account: ' + currentUser.email;
     }
   }
+
+  getRedirectResult(auth).catch((err) => {
+    authMsg.textContent = 'Login Error: ' + err.message;
+  });
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -227,8 +226,8 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Connecting to Google...';
-    signInWithPopup(auth, provider).catch((err) => {
+    authMsg.textContent = 'Redirecting to Google...';
+    signInWithRedirect(auth, provider).catch((err) => {
       authMsg.textContent = 'Login Error: ' + err.message;
     });
   };

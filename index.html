@@ -139,7 +139,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_I0gK6RXMSCBzkbTKZ-S7GZOZ_PM1uFY",
@@ -201,13 +201,12 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
           trialEndsAt: now + TRIAL_DURATION_MS,
           authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
         };
-        await setDoc(userRef, data);
+        await setDoc(userRef, data, { merge: true });
       } else {
         data = snap.data();
       }
     } catch(e) {
-      // Fallback kung sakaling may database o network permission error
-      console.warn("DB connection warning, using local session fallback:", e);
+      // Fallback para hindi masira ang main app kapag may database rule/network error
       data = {
         email: user.email,
         trialEndsAt: now + TRIAL_DURATION_MS,
@@ -290,7 +289,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
         const uid = docSnap.id;
         const isAuth = u.authorized ? 'checked' : '';
         html += `<div class="user-row">
-          <div><b>${u.email}</b><br><span class="sub">${u.name || ''} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < u.trialEndsAt ? 'Active Trial' : 'Expired')}</span></div>
+          <div><b>${u.email}</b><br><span class="sub">${u.name || ''} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < (u.trialEndsAt || 0) ? 'Active Trial' : 'Expired')}</span></div>
           <div><label><input type="checkbox" data-uid="${uid}" ${isAuth} class="auth-toggle"> Authorized</label></div>
         </div>`;
       });
@@ -300,11 +299,17 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
         chk.onchange = async (e) => {
           const targetUid = e.target.dataset.uid;
           const newStatus = e.target.checked;
-          await updateDoc(doc(db, "users", targetUid), { authorized: newStatus });
+          try {
+            // Ligtas na pag-update gamit ang setDoc at merge
+            await setDoc(doc(db, "users", targetUid), { authorized: newStatus }, { merge: true });
+          } catch(err) {
+            alert('Hindi nai-save ang pagbabago dahil restricted ang database rules.');
+            e.target.checked = !newStatus; // I-revert kung nabigo
+          }
         };
       });
     } catch(err) {
-      adminList.innerHTML = '<div class="sub" style="color:var(--b)">Hindi ma-load ang users mula sa Firestore database.</div>';
+      adminList.innerHTML = '<div class="sub" style="color:var(--b)">Hindi ma-load ang users. Pakisuri ang Firebase Firestore Rules.</div>';
     }
   };
 

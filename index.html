@@ -50,7 +50,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 </style></head><body>
 
 <!-- FIREBASE GOOGLE LOGIN OVERLAY -->
-<div id="firebaseAuthOverlay">
+<div id="firebaseAuthOverlay" style="display:none;">
   <div class="auth-card">
     <h2>🔒 Protected System</h2>
     <p>Sign in with your authorized Google Account.</p>
@@ -84,7 +84,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div id="dr"><div class="bk"></div><div class="pn">
 <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
 
-<!-- ADMIN PANEL SECTION (Lilitaw lang kapag ikaw ang Master Admin) -->
+<!-- ADMIN PANEL SECTION -->
 <div class="card" id="adminPanelCard" style="display:none; border: 1px solid var(--gold);">
   <h3 style="color:var(--gold);">👑 Admin Dashboard</h3>
   <div class="sub">Manage Authorized Users</div>
@@ -105,10 +105,10 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
 </div></div>
 
-<!-- FIREBASE GOOGLE AUTH & FIRESTORE ADMIN MODULE -->
+<!-- FIREBASE GOOGLE AUTH & FIRESTORE ADMIN MODULE (REDIRECT METHOD) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -169,6 +169,12 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     }
   };
 
+  // Suriin ang redirect result kung galing sa Google login page
+  getRedirectResult(auth).catch((err) => {
+    authMsg.textContent = 'Login Error: ' + err.message;
+    overlay.style.display = 'flex';
+  });
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const userRef = doc(db, "users", user.uid);
@@ -197,11 +203,8 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Connecting to Google...';
-    signInWithPopup(auth, provider)
-      .catch((err) => {
-        authMsg.textContent = 'Login Error: ' + err.message;
-      });
+    authMsg.textContent = 'Redirecting to Google...';
+    signInWithRedirect(auth, provider);
   };
 
   signOutBtn.onclick = () => {

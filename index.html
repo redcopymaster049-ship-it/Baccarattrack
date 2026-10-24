@@ -97,7 +97,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
 </div></div>
 
-<!-- FIREBASE GOOGLE AUTH MODULE (OPEN ACCESS FOR ANY GOOGLE ACCOUNT) -->
+<!-- FIREBASE GOOGLE AUTH MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
@@ -309,7 +309,7 @@ function replay(H){const m0=LIVE?MM:null;let step=m0?m0.step:0,pnl=0,w=0,stop=nu
   if(!stop&&sd){const bk=S.bankroll+carry+pnl;const U=baseNow(),base0=S.prog==='tvc'?(ledger.length?ledger[0]+U:U):U*units(step),mult=S.prog==='tvc'?Math.ceil(base0/U-1e-9):Math.round(base0/U),want=Math.max(1,mult)*U,cap=Math.floor(Math.min(bk*S.maxBetPct/100,S.maxBet>0?S.maxBet:Infinity)/U+1e-9)*U;let amt=Math.min(want,cap);amt=Math.max(0,Math.round(amt*100)/100);if(amt>0)bet={side:sd,amt,step,U,m:Math.round(amt/U)}}
   if(i===H.length)return{bets,pnl,step,stop,wagered:w,next:bet,sg,resets,sn,sh,trk,ledger,cyc,recov,evt};
   
-  const r=H[i].r,tk={i,sig:ok(sg.side)?sg.side:null,ov:H[i].ov||null,bet:bet?bet.side:null,amt:bet?bet.amt:0,r,d:0};trk.push(tk);if(ok(sg.side)&&r!=='T'){sn++;if(sg.side===r}if(bet){let d=0,won=false;if(r==='T'){d=0}else if(r===bet.side){won=true;d=bet.side==='B'?bet.amt*(1-S.comm/100):bet.amt}else d=-bet.amt;
+  const r=H[i].r,tk={i,sig:ok(sg.side)?sg.side:null,ov:H[i].ov||null,bet:bet?bet.side:null,amt:bet?bet.amt:0,r,d:0};trk.push(tk);if(ok(sg.side)&&r!=='T'){sn++;if(sg.side===r)sh++}if(bet){let d=0,won=false;if(r==='T'){d=0}else if(r===bet.side){won=true;d=bet.side==='B'?bet.amt*(1-S.comm/100):bet.amt}else d=-bet.amt;
    w+=bet.amt;pnl+=d;tk.d=d;bets.push({i,...bet,r,d});
    if(r!=='T'){if(S.prog==='tvc'){if(won){cyc+=d;recov+=ledger.length?ledger[0]:0;ledger.shift();if(cyc>0){ledger=[];cyc=0}}else{ledger.push(bet.amt);cyc-=bet.amt;if(S.maxSteps>0&&ledger.length>S.maxSteps){ledger=[];cyc=0;resets++}}step=ledger.length}else if(S.prog==='cyc2'){const o=step+1;cyc+=d;if(cyc>0){evt='Cycle profit positive (+'+cyc.toFixed(2)+') ➔ RESET to Step 1';step=0;cyc=0}else{step=won?Math.max(0,step-1):Math.min(step+1,19);evt=(won?'Win':'Loss')+' [Cycle P/L: '+cyc.toFixed(2)+'] ➔ Step '+o+(won?' DOWN to Step ':' UP to Step ')+(step+1)}}else{step=nextStep(step,won);if(step>(S.prog==='dal5'?(S.maxLevel>0?S.maxLevel*Math.max(1,S.rep)-1:Infinity):(S.maxSteps>0?S.maxSteps:Infinity))){step=0;resets++}}}}}
  }
@@ -402,7 +402,7 @@ function exact(){const pv=[4/13,...Array(9).fill(1/13)];let P=0,B=0,T=0;const ad
   else if(tab(bk,null)){for(let f=0;f<10;f++)add(w*pv[f],p,(bk+f)%10)}else add(w,p,bk)}
  return{P,B,T}}
 let SH=[],si=0,LH=null;const RK=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],ST=['♠','♥','♦','♣'],val=r=>r>=9?0:r+1,cd=r=>RK[r]+ST[Math.floor(Math.random()*4)];
-function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]}si=0}shuf();
+function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]]}si=0}shuf();
 function dealHand(){if(si>SH.length-30)shuf();const d=()=>SH[si++],P=[d(),d()],B=[d(),d()];let pt=(val(P[0])+val(P[1]))%10,bt=(val(B[0])+val(B[1]))%10,nat=pt>=8||bt>=8,note;
  if(nat)note='Natural: no third card is drawn.';else{let p3=null;if(pt<=5){const e=d();P.push(e);p3=val(e);pt=(pt+p3)%10;note='Player draws (third card value '+p3+'). '}else note='Player stands on '+pt+'. ';
   if(tab(bt,p3)){const f=d();B.push(f);bt=(bt+val(f))%10;note+='Banker draws per the tableau.'}else note+='Banker stands on '+bt+'.'}

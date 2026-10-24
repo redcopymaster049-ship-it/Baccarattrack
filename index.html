@@ -71,7 +71,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div class="card" id="sgc"><h3>Signal</h3><div class="sig" id="sg">—</div><div class="sub" id="ss"></div><div id="lm"></div></div>
 <div class="card"><h3>Bet Selection</h3><div class="warn" style="margin:0 0 8px">Tools for tracking and study. Patterns describe what has already happened. They do not predict what comes next.</div><div id="bs"></div></div>
 
-
 <div class="card"><h3>Bead Plate</h3><div class="scroll" id="sb"><canvas id="cb"></canvas></div></div>
 <div class="card"><h3>Big Road</h3><div class="scroll" id="sr"><canvas id="cr"></canvas></div></div>
 <div class="card"><div class="seg" id="sd"><button data-k="1" class="on">Big Eye Boy</button><button data-k="2">Small Road</button><button data-k="3">Cockroach Pig</button></div><div class="scroll" id="sx"><canvas id="cd"></canvas></div></div>
@@ -129,7 +128,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
   let appInitialized = false;
 
-  function initializeMainApp() {
+  window.initializeMainApp = function() {
     if (appInitialized) return;
     appInitialized = true;
     if (typeof form === 'function') form();
@@ -140,7 +139,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   function grantAccess() {
     overlay.style.display = 'none';
     protectedApp.style.display = 'block';
-    initializeMainApp();
+    window.initializeMainApp();
   }
 
   getRedirectResult(auth).then((result) => {
@@ -483,14 +482,14 @@ function selfTest(){const T=[],t=(n,g,e)=>T.push({n,g,e,ok:JSON.stringify(g)===J
  t('Confluence: Dragon and Dragon Cut agree',dA('CONFL',HS('BBBBPBBBB')),'B');
  t('No conflict when patterns agree',dA('CONFLICT',HS('BBBBPBBBB')),null);
  {const ka=S.algo;S.algo='all';const g=signal(HS('BBBBBBBBBBBB'));S.algo=ka;t('All-Algorithm Consensus follows a clear majority',g.side,'B')}
- {const s0={...S};S.prog='tvc';S.unit=10;S.comm=0;S.algo='follow';const rr=replay(['P','P','B','B'].map(r=>({r,ov:'B'})));Object.assign(S,s0);t('TVC +1 bet sequence (target loss + base unit)',rr.bets.map(b=>b.amt),[10,20,20,30]);t('TVC +1 net P&L, ledger cleared, recovered',[rr.pnl,rr.ledger.length,rr.recov],[20,0,30])}
+ {const s0={...S};Object.assign(S,{prog:'tvc',unit:10,comm:0,algo:'follow'});const rr=replay(['P','P','B','B'].map(r=>({r,ov:'B'})));Object.assign(S,s0);t('TVC +1 bet sequence (target loss + base unit)',rr.bets.map(b=>b.amt),[10,20,20,30]);t('TVC +1 net P&L, ledger cleared, recovered',[rr.pnl,rr.ledger.length,rr.recov],[20,0,30])}
  {const s0={...S};Object.assign(S,{prog:'dal5',unit:10,comm:0,algo:'follow',rep:2,maxLevel:5});const r1=replay([...'PPPBB'].map(r=>({r,ov:'B'})));Object.assign(S,{maxLevel:1});const r2=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{maxLevel:0,rep:1});const r3=replay([...'PPPPPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);t('Stepped D’Alembert unlimited: amounts keep climbing with no reset',[r3.bets.map(b=>b.amt),r3.resets],[[10,20,30,40,50,60],0]);t('Stepped D’Alembert amounts (1 1 2 2 2 with loss forward, win back)',r1.bets.map(b=>b.amt),[10,10,20,20,20]);t('Stepped D’Alembert ends one position back after two wins',r1.step,1);t('Stepped D’Alembert resets past the last position',[r2.step,r2.resets],[0,1])}
  {const s0={...S},m0=MM,c0=carry,l0=LIVE;carry=0;Object.assign(S,{bankroll:1000,unit:10,comm:0,algo:'follow',prog:'dal',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0});MM={step:2,ledger:[],cyc:0,recov:0};LIVE=true;const ra=replay([...'PPPP'].map(r=>({r,ov:'B'})));LIVE=false;const rb=replay([...'PPPP'].map(r=>({r,ov:'B'})));S.prog='tvc';MM={step:1,ledger:[10],cyc:-10,recov:0};LIVE=true;const rc=replay([{r:'B',ov:'B'}]);LIVE=false;MM=m0;Object.assign(S,s0);carry=c0;LIVE=l0;t('MM carries into a new shoe (D’Alembert resumes at step 2)',ra.bets.map(b=>b.amt),[30,40,50,60]);t('MM starts fresh when not live',rb.bets.map(b=>b.amt),[10,20,30,40]);t('TVC +1 ledger carries into a new shoe (target 10 + base 10)',rc.bets.map(b=>b.amt),[20])}
  {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1000,unit:4,comm:0,algo:'follow',slShoe:99999,slSess:99999,maxBetPct:100,tp:99999,maxSteps:9,prog:'dal'});const r1=replay([...'PPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);carry=c0;t('Progression bets are multiples of the base bet (4, 8, 12)',r1.bets.map(b=>b.amt),[4,8,12])}
  {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1000,unit:10,comm:0,algo:'follow',slShoe:99999,slSess:99999,maxBetPct:100,tp:99999,maxSteps:9,prog:'flat',minBase:0,maxBase:0,maxBet:0});Object.assign(S,{unit:5,minBase:8});const a1=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{unit:10,minBase:0,maxBase:6});const a2=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{maxBase:0,prog:'mart',maxBet:25});const a3=replay([...'PPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);carry=c0;t('Minimum base bet lifts a smaller base (5 becomes 8)',a1.bets.map(b=>b.amt),[8,8]);t('Maximum base bet caps the base (6, 6)',a2.bets.map(b=>b.amt),[6,6]);t('Maximum bet caps a progression at a multiple of the base (10, 20, 20)',a3.bets.map(b=>b.amt),[10,20,20])}
  {const s0={...S},c0=carry;carry=0;const run=u=>{Object.assign(S,{bankroll:10000,unit:u,comm:0,algo:'follow',prog:'flat',slShoe:3,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0});return replay([...'PPPPP'].map(r=>({r,ov:'B'}))).bets.map(b=>b.amt)};const u1=run(4),u2=run(10);Object.assign(S,s0);carry=c0;t('Stop-loss scales with the base bet (3 units at base 4)',u1,[4,4,4]);t('Stop-loss scales with the base bet (3 units at base 10)',u2,[10,10,10])}
  {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:100000,unit:10,comm:0,algo:'follow',prog:'cyc2',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0});const ca=replay([...'PPBB'].map(r=>({r,ov:'B'})));const cb=replay([...Array(22)].map(()=>({r:'P',ov:'B'})));Object.assign(S,s0);carry=c0;t('1-1-2-2-3-3: amounts, P&L, and cycle reset',[ca.bets.map(b=>b.amt),ca.pnl,ca.step,ca.cyc],[[10,10,20,10],10,0,0]);t('1-1-2-2-3-3 climbs in pairs and holds at the last step',cb.bets.map(b=>b.amt/10),[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,10,10])}
- {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1e7,unit:10,comm:0,algo:'follow',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0,maxSteps:0,prog:'mart'});const ma=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));S.prog='tvc';const mb=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));Object.assign(S,s0);carry=c0;t('Max steps 0: Martingale never auto-resets',ma.bets.map(b=>b.amt),[10,20,40,80,160,320,640,1280]);t('Max steps 0: TVC ledger is never written off',[mb.ledger.length,mb.resets],[8,0])}
+ {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1e7,unit:10,comm:0,algo:'follow',prog:'mart',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0,maxSteps:0});const ma=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));S.prog='tvc';const mb=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));Object.assign(S,s0);carry=c0;t('Max steps 0: Martingale never auto-resets',ma.bets.map(b=>b.amt),[10,20,40,80,160,320,640,1280]);t('Max steps 0: TVC ledger is never written off',[mb.ledger.length,mb.resets],[8,0])}
  
  
  {const s0={...S};Object.assign(S,{algo:'jelly',minHands:3,jbRef:2});const j=s=>signal(HS(s)).side||null;const a=[j('BBBPB'),j('BBBPBB'),j('BPB'),j('BBPPB'),j('BBPP'),j('BBP'),j('BBBPTB')];S.jbRef=1;const b=j('BBBPB');Object.assign(S,s0);t('Jelly Belly bets once per column from the 3rd column (same-side reference)',a,['B',null,'P','B',null,null,'B']);t('Jelly Belly with the previous-column reference',b,'P')}

@@ -39,7 +39,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 .hs div{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
 .warn{font-size:12px;color:var(--mut);border-left:3px solid var(--gold);padding-left:8px;margin:8px 0}
 
-/* LOGIN & PAYWALL OVERLAYS */
+/* LOGIN SCREEN */
 #firebaseAuthOverlay{position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
 .auth-card h2{margin:0 0 8px;color:var(--gold);font-size:20px}
@@ -48,17 +48,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 .google-btn:hover{background:#f1f1f1}
 .auth-err{color:var(--b);font-size:12px;margin-top:14px;min-height:18px}
 
-#paywallOverlay{position:fixed;inset:0;background:var(--bg);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px}
-.paywall-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;width:100%;max-width:380px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
-.paywall-card h2{margin:0 0 8px;color:var(--gold);font-size:20px}
-.paywall-card p{margin:0 0 16px;font-size:13px;color:var(--mut);line-height:1.5}
-
-/* ADMIN PANEL MODAL */
-#adminModal{position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#0008;padding:15px}
-#adminModal .modal-content{background:var(--card);border:1px solid var(--line);border-radius:12px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;padding:16px}
-#adminList{overflow-y:auto;flex:1;margin-top:10px}
-.user-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
-
 #protectedApp { display: none; }
 </style></head><body>
 
@@ -66,32 +55,12 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div id="firebaseAuthOverlay">
   <div class="auth-card">
     <h2>♠ Baccarat Tracker</h2>
-    <p>Sign in with your Google Account to start your 30-minute free trial.</p>
+    <p>Sign in with your Google Account to use the application.</p>
     <button id="googleLoginBtn" class="google-btn">
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.48 16.01 5.5 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.18-.53-.28-1.1-.28-1.8s.1-1.27.28-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0 5.5 0 2.48 1.99.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
       Sign in with Google
     </button>
     <div id="authMsg" class="auth-err"></div>
-  </div>
-</div>
-
-<!-- PAYWALL OVERLAY (EXPIRED) -->
-<div id="paywallOverlay">
-  <div class="paywall-card">
-    <h2>Trial Expired</h2>
-    <p>Naubos na ang iyong 30-minute free trial. Humingi ng authorization sa Administrator para sa tuloy-tuloy na paggamit.</p>
-    <div id="trialEmailDisplay" style="font-size:12px;color:var(--gold);margin-bottom:14px;word-break:break-all"></div>
-    <button class="tg" id="requestAccessBtn" style="background:var(--gold);color:#111;font-weight:700;margin-bottom:8px">I-request ang Full Access</button>
-    <button class="tg" id="paywallSignOut" style="background:transparent;border:1px solid var(--line)">Mag-sign out</button>
-  </div>
-</div>
-
-<!-- ADMIN PANEL MODAL -->
-<div id="adminModal">
-  <div class="modal-content">
-    <div class="row"><b style="flex:1;color:var(--gold)">Admin Panel: Manage Users</b><button class="ic" id="closeAdmin">✕</button></div>
-    <div class="sub">I-toggle ang status para sa Full Authorized Access.</div>
-    <div id="adminList"></div>
   </div>
 </div>
 
@@ -118,7 +87,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   <div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
   <div id="dr"><div class="bk"></div><div class="pn">
   <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
-  <div class="card" id="adminMenuCard" style="display:none"><h3>Admin Tools</h3><div class="row"><button class="tg" id="openAdminBtn" style="background:var(--gold);color:#111;font-weight:700">⚙️ Open Admin Panel</button></div></div>
   <div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out</button></div></div>
   <div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
   <div class="card"><h3>Settings</h3><div id="fm"></div></div>
@@ -138,7 +106,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_I0gK6RXMSCBzkbTKZ-S7GZOZ_PM1uFY",
@@ -152,28 +119,14 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  const ADMIN_EMAIL = "smoakshadow@gmail.com";
-  const TRIAL_DURATION_MS = 30 * 60 * 1000;
-
   const overlay = document.getElementById('firebaseAuthOverlay');
-  const paywallOverlay = document.getElementById('paywallOverlay');
   const protectedApp = document.getElementById('protectedApp');
   const authMsg = document.getElementById('authMsg');
   const googleLoginBtn = document.getElementById('googleLoginBtn');
   const signOutBtn = document.getElementById('signOutBtn');
-  const paywallSignOut = document.getElementById('paywallSignOut');
-  const requestAccessBtn = document.getElementById('requestAccessBtn');
-  const trialEmailDisplay = document.getElementById('trialEmailDisplay');
-  const adminMenuCard = document.getElementById('adminMenuCard');
-  const openAdminBtn = document.getElementById('openAdminBtn');
-  const adminModal = document.getElementById('adminModal');
-  const closeAdmin = document.getElementById('closeAdmin');
-  const adminList = document.getElementById('adminList');
 
-  let currentUser = null;
   let appInitialized = false;
 
   function initializeMainApp() {
@@ -184,63 +137,15 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     if (typeof bootTrain === 'function') bootTrain();
   }
 
-  async function checkUserAccess(user) {
-    currentUser = user;
-    const userRef = doc(db, "users", user.uid);
-    const now = Date.now();
-    let data = null;
-
-    try {
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) {
-        data = {
-          email: user.email,
-          name: user.displayName || 'User',
-          createdAt: now,
-          trialEndsAt: now + TRIAL_DURATION_MS,
-          authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-        };
-        await setDoc(userRef, data, { merge: true });
-      } else {
-        data = snap.data();
-      }
-    } catch(e) {
-      data = {
-        email: user.email,
-        trialEndsAt: now + TRIAL_DURATION_MS,
-        authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
-      };
-    }
-
-    evaluateAccess(data);
-  }
-
-  function evaluateAccess(data) {
-    const now = Date.now();
-    const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-
-    if (isAdmin || data.authorized || now < data.trialEndsAt) {
-      overlay.style.display = 'none';
-      paywallOverlay.style.display = 'none';
-      protectedApp.style.display = 'block';
-      if (isAdmin) adminMenuCard.style.display = 'block';
-      
-      initializeMainApp();
-
-      if (!isAdmin && now < data.trialEndsAt) {
-        setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
-      }
-    } else {
-      overlay.style.display = 'none';
-      protectedApp.style.display = 'none';
-      paywallOverlay.style.display = 'flex';
-      trialEmailDisplay.textContent = 'Account: ' + currentUser.email;
-    }
+  function grantAccess() {
+    overlay.style.display = 'none';
+    protectedApp.style.display = 'block';
+    initializeMainApp();
   }
 
   getRedirectResult(auth).then((result) => {
     if (result && result.user) {
-      checkUserAccess(result.user);
+      grantAccess();
     }
   }).catch((err) => {
     authMsg.textContent = 'Login Error: ' + err.message;
@@ -248,12 +153,10 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      checkUserAccess(user);
+      grantAccess();
     } else {
       overlay.style.display = 'flex';
-      paywallOverlay.style.display = 'none';
       protectedApp.style.display = 'none';
-      adminMenuCard.style.display = 'none';
     }
   });
 
@@ -270,47 +173,6 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
       document.getElementById('dr').classList.remove('open'); 
     }); 
   };
-  paywallSignOut.onclick = () => { signOut(auth).then(() => { paywallOverlay.style.display = 'none'; }); };
-
-  requestAccessBtn.onclick = () => {
-    alert('Na-send na ang hiling mo sa Admin. Mangyaring makipag-ugnayan sa Administrator para ma-approve ang iyong account.');
-  };
-
-  openAdminBtn.onclick = async () => {
-    adminModal.style.display = 'flex';
-    adminList.innerHTML = '<div class="sub">Loading users...</div>';
-    try {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      let html = '';
-      querySnapshot.forEach((docSnap) => {
-        const u = docSnap.data();
-        const uid = docSnap.id;
-        const isAuth = u.authorized ? 'checked' : '';
-        html += `<div class="user-row">
-          <div><b>${u.email}</b><br><span class="sub">${u.name || ''} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < (u.trialEndsAt || 0) ? 'Active Trial' : 'Expired')}</span></div>
-          <div><label><input type="checkbox" data-uid="${uid}" ${isAuth} class="auth-toggle"> Authorized</label></div>
-        </div>`;
-      });
-      adminList.innerHTML = html || '<div class="sub">Walang users pa.</div>';
-
-      document.querySelectorAll('.auth-toggle').forEach(chk => {
-        chk.onchange = async (e) => {
-          const targetUid = e.target.dataset.uid;
-          const newStatus = e.target.checked;
-          try {
-            await setDoc(doc(db, "users", targetUid), { authorized: newStatus }, { merge: true });
-          } catch(err) {
-            alert('Hindi nai-save ang pagbabago dahil restricted ang database rules.');
-            e.target.checked = !newStatus;
-          }
-        };
-      });
-    } catch(err) {
-      adminList.innerHTML = '<div class="sub" style="color:var(--b)">Hindi ma-load ang users. Pakisuri ang Firebase Firestore Rules.</div>';
-    }
-  };
-
-  closeAdmin.onclick = () => { adminModal.style.display = 'none'; };
 </script>
 
 <!-- APP LOGIC SCRIPT -->

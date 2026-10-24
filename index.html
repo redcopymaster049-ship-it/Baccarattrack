@@ -188,28 +188,34 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   async function checkUserAccess(user) {
     currentUser = user;
     const userRef = doc(db, "users", user.uid);
-    let snap;
-    try {
-      snap = await getDoc(userRef);
-    } catch(e) {
-      authMsg.textContent = 'Network/DB Error. Please check connection.';
-      return;
-    }
     const now = Date.now();
+    let data = null;
 
-    if (!snap.exists()) {
-      const newUserData = {
+    try {
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) {
+        data = {
+          email: user.email,
+          name: user.displayName || 'User',
+          createdAt: now,
+          trialEndsAt: now + TRIAL_DURATION_MS,
+          authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+        };
+        await setDoc(userRef, data);
+      } else {
+        data = snap.data();
+      }
+    } catch(e) {
+      // Fallback kung sakaling may database o network permission error
+      console.warn("DB connection warning, using local session fallback:", e);
+      data = {
         email: user.email,
-        name: user.displayName || 'User',
-        createdAt: now,
         trialEndsAt: now + TRIAL_DURATION_MS,
         authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
       };
-      await setDoc(userRef, newUserData);
-      evaluateAccess(newUserData);
-    } else {
-      evaluateAccess(snap.data());
     }
+
+    evaluateAccess(data);
   }
 
   function evaluateAccess(data) {
@@ -219,7 +225,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     if (isAdmin || data.authorized || now < data.trialEndsAt) {
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
-      protectedApp.style.display = 'block'; // IPAKITANG GANAP ANG MAIN APP
+      protectedApp.style.display = 'block';
       if (isAdmin) adminMenuCard.style.display = 'block';
       
       initializeMainApp();
@@ -276,26 +282,30 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   openAdminBtn.onclick = async () => {
     adminModal.style.display = 'flex';
     adminList.innerHTML = '<div class="sub">Loading users...</div>';
-    const querySnapshot = await getDocs(collection(db, "users"));
-    let html = '';
-    querySnapshot.forEach((docSnap) => {
-      const u = docSnap.data();
-      const uid = docSnap.id;
-      const isAuth = u.authorized ? 'checked' : '';
-      html += `<div class="user-row">
-        <div><b>${u.email}</b><br><span class="sub">${u.name} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < u.trialEndsAt ? 'Active Trial' : 'Expired')}</span></div>
-        <div><label><input type="checkbox" data-uid="${uid}" ${isAuth} class="auth-toggle"> Authorized</label></div>
-      </div>`;
-    });
-    adminList.innerHTML = html || '<div class="sub">Walang users pa.</div>';
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      let html = '';
+      querySnapshot.forEach((docSnap) => {
+        const u = docSnap.data();
+        const uid = docSnap.id;
+        const isAuth = u.authorized ? 'checked' : '';
+        html += `<div class="user-row">
+          <div><b>${u.email}</b><br><span class="sub">${u.name || ''} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < u.trialEndsAt ? 'Active Trial' : 'Expired')}</span></div>
+          <div><label><input type="checkbox" data-uid="${uid}" ${isAuth} class="auth-toggle"> Authorized</label></div>
+        </div>`;
+      });
+      adminList.innerHTML = html || '<div class="sub">Walang users pa.</div>';
 
-    document.querySelectorAll('.auth-toggle').forEach(chk => {
-      chk.onchange = async (e) => {
-        const targetUid = e.target.dataset.uid;
-        const newStatus = e.target.checked;
-        await updateDoc(doc(db, "users", targetUid), { authorized: newStatus });
-      };
-    });
+      document.querySelectorAll('.auth-toggle').forEach(chk => {
+        chk.onchange = async (e) => {
+          const targetUid = e.target.dataset.uid;
+          const newStatus = e.target.checked;
+          await updateDoc(doc(db, "users", targetUid), { authorized: newStatus });
+        };
+      });
+    } catch(err) {
+      adminList.innerHTML = '<div class="sub" style="color:var(--b)">Hindi ma-load ang users mula sa Firestore database.</div>';
+    }
   };
 
   closeAdmin.onclick = () => { adminModal.style.display = 'none'; };

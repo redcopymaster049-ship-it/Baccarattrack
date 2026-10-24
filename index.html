@@ -83,6 +83,14 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
 <div id="dr"><div class="bk"></div><div class="pn">
 <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
+
+<!-- ADMIN PANEL SECTION (Makikita lang kung ikaw ang Admin) -->
+<div class="card" id="adminPanelCard" style="display:none; border: 1px solid var(--gold);">
+  <h3 style="color:var(--gold);">👑 Admin Dashboard</h3>
+  <div class="sub">Manage Authorized Users</div>
+  <div id="userRequestsList" style="margin-top:10px; max-height:180px; overflow-y:auto;"></div>
+</div>
+
 <div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out (Firebase)</button></div></div>
 <div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
 <div class="card"><h3>Settings</h3><div id="fm"></div></div>
@@ -97,10 +105,11 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
 </div></div>
 
-<!-- FIREBASE GOOGLE AUTH MODULE (AUTHORIZED UID RESTRICTION) -->
+<!-- FIREBASE GOOGLE AUTH & FIRESTORE ADMIN MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_I0gK6RXMSCBzkbTKZ-S7GZOZ_PM1uFY",
@@ -112,28 +121,81 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
     measurementId: "G-FXCBY908CQ"
   };
 
-  const ALLOWED_UID = "AkxlY0kVzNNdQmFfKbol0ZisQ1G3";
+  const MASTER_ADMIN_UID = "RIZhOGckzAecBjs5mXm6T4afpig2";
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
   const overlay = document.getElementById('firebaseAuthOverlay');
   const authMsg = document.getElementById('authMsg');
   const googleLoginBtn = document.getElementById('googleLoginBtn');
   const signOutBtn = document.getElementById('signOutBtn');
+  const adminPanelCard = document.getElementById('adminPanelCard');
+  const userRequestsList = document.getElementById('userRequestsList');
 
-  onAuthStateChanged(auth, (user) => {
+  async function loadUserRequests() {
+    userRequestsList.innerHTML = 'Loading users...';
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      let html = '';
+      querySnapshot.forEach((docSnap) => {
+        const u = docSnap.data();
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--line); font-size:12px;">
+          <div><b>${u.email || 'No Email'}</b><br><span style="color:var(--mut)">${u.uid}</span><br>Status: <b style="color:${u.status==='approved'?'var(--t)':'var(--gold)'}">${u.status}</b></div>
+          <div>
+            ${u.status !== 'approved' ? `<button class="ic" data-approve="${u.uid}" style="background:var(--t); color:#fff; padding:3px 6px; font-size:11px; margin-right:4px;">Approve</button>` : ''}
+            <button class="ic" data-delete="${u.uid}" style="background:var(--b); color:#fff; padding:3px 6px; font-size:11px;">Remove</button>
+          </div>
+        </div>`;
+      });
+      userRequestsList.innerHTML = html || 'No users found.';
+    } catch (e) {
+      userRequestsList.innerHTML = 'Error loading users.';
+    }
+  }
+
+  userRequestsList.onclick = async (e) => {
+    const approveUid = e.target.dataset.approve;
+    const deleteUid = e.target.dataset.delete;
+    if (approveUid) {
+      await setDoc(doc(db, "users", approveUid), { status: "approved" }, { merge: true });
+      loadUserRequests();
+    }
+    if (deleteUid) {
+      await deleteDoc(doc(db, "users", deleteUid));
+      loadUserRequests();
+    }
+  };
+
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
-      if (ALLOWED_UID === "DITO_ILAGAY_ANG_UID_MO" || user.uid === ALLOWED_UID) {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (user.uid === MASTER_ADMIN_UID) {
+        // Master Admin: Awtomatikong i-save bilang approved kung wala pa
+        if (!userSnap.exists()) {
+          await setDoc(userRef, { uid: user.uid, email: user.email, status: "approved", role: "admin" });
+        }
         overlay.style.display = 'none';
-        authMsg.textContent = '';
+        adminPanelCard.style.display = 'block';
+        loadUserRequests();
       } else {
-        authMsg.textContent = 'Access Denied: Unauthorized Account (' + user.uid + ')';
-        signOut(auth);
+        // Ibang User
+        if (userSnap.exists() && userSnap.data().status === "approved") {
+          overlay.style.display = 'none';
+        } else {
+          // Kung bago o pending pa lang, i-save sa database para makita mo sa Admin Panel
+          await setDoc(userRef, { uid: user.uid, email: user.email, status: "pending", role: "user" }, { merge: true });
+          overlay.style.display = 'flex';
+          authMsg.innerHTML = `Access Pending. Ibigay ang UID na ito sa Admin:<br><b style="color:var(--gold); font-size:11px;">${user.uid}</b>`;
+        }
       }
     } else {
       overlay.style.display = 'flex';
+      adminPanelCard.style.display = 'none';
     }
   });
 
@@ -179,7 +241,7 @@ function layout(items){const occ=new Set,out=[];let x=0,y=0,cs=0,pk=null;
  items.forEach((it,i)=>{if(i===0){x=0;y=0;cs=0}else if(it.k!==pk){x=++cs;y=0}else if(y<5&&!occ.has(x+','+(y+1)))y++;else x++;
  occ.add(x+','+y);out.push({...it,x,y});pk=it.k});return out}
 function derive(L,k){const o=[];L.forEach((len,c)=>{for(let r=0;r<len;r++){
- if(r===0){if(c>=k+1)o.push({k:L[c-1]===L[c-1-k]?'R':'B'})}
+ if(r===0){if(c>=k+1)o.push({k:L[c-1]===L[c-1-k]?'R':'B'}))
  else if(c>=k){const ref=L[c-k];o.push({k:(ref>=r+1||ref<r)?'R':'B'})}}});return o}
 function chop(H){const r=H.filter(x=>x.r!=='T').slice(-16).map(x=>x.r);if(r.length<3)return 0;let c=0;for(let i=1;i<r.length;i++)if(r[i]!==r[i-1])c++;return c/(r.length-1)}
 /* ---- Pattern library ---- */
@@ -410,7 +472,7 @@ function exact(){const pv=[4/13,...Array(9).fill(1/13)];let P=0,B=0,T=0;const ad
   else if(tab(bk,null)){for(let f=0;f<10;f++)add(w*pv[f],p,(bk+f)%10)}else add(w,p,bk)}
  return{P,B,T}}
 let SH=[],si=0,LH=null;const RK=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],ST=['♠','♥','♦','♣'],val=r=>r>=9?0:r+1,cd=r=>RK[r]+ST[Math.floor(Math.random()*4)];
-function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]]}si=0}shuf();
+function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]}si=0}shuf();
 function dealHand(){if(si>SH.length-30)shuf();const d=()=>SH[si++],P=[d(),d()],B=[d(),d()];let pt=(val(P[0])+val(P[1]))%10,bt=(val(B[0])+val(B[1]))%10,nat=pt>=8||bt>=8,note;
  if(nat)note='Natural: no third card is drawn.';else{let p3=null;if(pt<=5){const e=d();P.push(e);p3=val(e);pt=(pt+p3)%10;note='Player draws (third card value '+p3+'). '}else note='Player stands on '+pt+'. ';
   if(tab(bt,p3)){const f=d();B.push(f);bt=(bt+val(f))%10;note+='Banker draws per the tableau.'}else note+='Banker stands on '+bt+'.'}

@@ -156,8 +156,8 @@ if(!Array.isArray(A.h))A.h=[];
 if(!S.unitMig){if(S.allMig&&S.unit>0){S.slShoe=Math.round(S.slShoe/S.unit*10)/10;S.slSess=Math.round(S.slSess/S.unit*10)/10;S.tp=Math.round(S.tp/S.unit*10)/10}S.unitMig=1;sv('bc_set',S)}
 if(!S.stepMig){S.maxSteps=0;S.stepMig=1;sv('bc_set',S)}
 if(!S.brainMig){S.algo='brain';S.showAlgo=0;S.brainMig=1;sv('bc_set',S)}
-if(!S.allMig){S.algo='all';S.allMig=1;sv('bc_set',S)}
-if(S.algo==='banker'){S.algo='all';sv('bc_set',S)}
+if(!S.allMig){S.algo='brain';S.allMig=1;sv('bc_set',S)}
+if(S.algo==='banker'||S.algo==='all'){S.algo='brain';sv('bc_set',S)}
 if(!S.mlMig){S.maxLevel=0;S.mlMig=1;sv('bc_set',S)}
 let LIVE=false;const gl=k=>{try{return+localStorage.getItem(k)||0}catch(e){return 0}};let sessPrev=gl('bc_sp'),sessT0=gl('bc_t0')||Date.now();{const la=gl('bc_la')||sessT0;if(Date.now()-la>3*3600000){sessT0=Date.now();sessPrev=0;try{localStorage.setItem('bc_sp',0)}catch(e){}}}try{localStorage.setItem('bc_t0',sessT0)}catch(e){}
 let MM={step:0,ledger:[],cyc:0,recov:0,net:0};try{const j=JSON.parse(localStorage.getItem('bc_mm'));if(j&&Array.isArray(j.ledger))MM={step:+j.step||0,ledger:j.ledger.map(Number),cyc:+j.cyc||0,recov:+j.recov||0,net:+j.net||0}}catch(e){}

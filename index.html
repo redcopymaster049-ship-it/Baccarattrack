@@ -146,7 +146,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
 <script>
 const $=s=>document.querySelector(s),cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const DEF={bankroll:1000,unit:4,prog:'flat',algo:'brain',maxSteps:0,seq:'1,1,2,3,5',slShoe:50,slSess:100,tp:25,maxBetPct:10,comm:5,minHands:3,allThr:60,allMin:5,maxMin:0,maxHands:0,tiltLoss:0,tiltMult:0,rep:5,maxLevel:0,minBase:4,maxBase:0,maxBet:0,jbRef:2,lnThr:0.55,lnMin:6,brThr:0.56,brZ:2.5,showAlgo:0};
+const DEF={bankroll:1000,unit:4,prog:'cyc2',algo:'brain',maxSteps:0,seq:'1,1,2,3,5',slShoe:50,slSess:100,tp:25,maxBetPct:10,comm:5,minHands:3,allThr:60,allMin:5,maxMin:0,maxHands:0,tiltLoss:0,tiltMult:0,rep:5,maxLevel:0,minBase:4,maxBase:0,maxBet:0,jbRef:2,lnThr:0.55,lnMin:6,brThr:0.56,brZ:2.5,showAlgo:1};
 const LBL={bankroll:'Starting bankroll',unit:'Base bet (progression multiples)',prog:'Progression',algo:'Signal algorithm',maxSteps:'Max progression steps (0 = never auto-reset)',seq:'Custom sequence',slShoe:'Stop-loss per shoe (units of base bet)',slSess:'Stop-loss per session (units)',tp:'Take-profit per session (units)',maxBetPct:'Max bet % of bankroll',comm:'Banker commission %',minHands:'Min hands before signals',allThr:'Consensus agreement % (All-Algorithm)',allMin:'Min active algorithms (All-Algorithm)',maxMin:'Session time limit (min, 0 = off)',maxHands:'Session hand limit (0 = off)',tiltLoss:'Tilt alert: losing bets in a row (0 = off)',tiltMult:'Tilt alert: bet as multiple of base unit (0 = off)',rep:'Stepped D’Alembert: bets per level',maxLevel:'Stepped D’Alembert: max level (0 = unlimited)',minBase:'Minimum base bet (0 = off)',maxBase:'Maximum base bet (0 = off)',maxBet:'Maximum bet per hand (0 = off)',jbRef:'Jelly Belly reference column (2 = same side, 1 = previous)',lnThr:'Learner confidence needed to bet (0.55 = 55%)',lnMin:'Brain minimum observations',brThr:'Brain sensitivity: confidence needed to bet (0.56 = 56%)',brZ:'Brain evidence needed to bet (standard deviations, 0 = bet on any lean)',showAlgo:'Show algorithm details (0 = hidden, 1 = show)'};
 function ld(k,d){try{return Object.assign({},d,JSON.parse(localStorage.getItem(k)))}catch(e){return{...d}}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -155,7 +155,7 @@ try{carry=+localStorage.getItem('bc_carry')||0}catch(e){}
 if(!Array.isArray(A.h))A.h=[];
 if(!S.unitMig){if(S.allMig&&S.unit>0){S.slShoe=Math.round(S.slShoe/S.unit*10)/10;S.slSess=Math.round(S.slSess/S.unit*10)/10;S.tp=Math.round(S.tp/S.unit*10)/10}S.unitMig=1;sv('bc_set',S)}
 if(!S.stepMig){S.maxSteps=0;S.stepMig=1;sv('bc_set',S)}
-if(!S.brainMig){S.algo='brain';S.showAlgo=0;S.brainMig=1;sv('bc_set',S)}
+if(!S.brainMig){S.algo='brain';S.showAlgo=1;S.brainMig=1;sv('bc_set',S)}
 if(!S.allMig){S.algo='brain';S.allMig=1;sv('bc_set',S)}
 if(S.algo==='banker'||S.algo==='all'){S.algo='brain';sv('bc_set',S)}
 if(!S.mlMig){S.maxLevel=0;S.mlMig=1;sv('bc_set',S)}

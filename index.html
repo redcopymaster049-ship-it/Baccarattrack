@@ -132,7 +132,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <!-- FIREBASE GOOGLE AUTH & FIRESTORE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -200,11 +200,9 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
       if (isAdmin) adminMenuCard.style.display = 'block';
-      if (typeof render === 'function') render();
     } else if (now < data.trialEndsAt) {
       overlay.style.display = 'none';
       paywallOverlay.style.display = 'none';
-      if (typeof render === 'function') render();
       setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
     } else {
       overlay.style.display = 'none';
@@ -228,8 +226,8 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Connecting to Google...';
-    signInWithPopup(auth, provider).catch((err) => {
+    authMsg.textContent = 'Redirecting to Google...';
+    signInWithRedirect(auth, provider).catch((err) => {
       authMsg.textContent = 'Login Error: ' + err.message;
     });
   };

@@ -39,7 +39,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 .hs div{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
 .warn{font-size:12px;color:var(--mut);border-left:3px solid var(--gold);padding-left:8px;margin:8px 0}
 
-/* GOOGLE LOGIN SCREEN STYLES */
+/* FIREBASE GOOGLE AUTH UI OVERLAY & PAYWALL */
 #firebaseAuthOverlay{position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;width:100%;max-width:340px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
 .auth-card h2{margin:0 0 8px;color:var(--gold);font-size:20px}
@@ -47,14 +47,24 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 .google-btn{width:100%;padding:12px;background:#fff;color:#444;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
 .google-btn:hover{background:#f1f1f1}
 .auth-err{color:var(--b);font-size:12px;margin-top:14px;min-height:18px}
-#protectedApp { display: none; }
+
+#paywallOverlay{position:fixed;inset:0;background:var(--bg);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px}
+.paywall-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;width:100%;max-width:380px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.6)}
+.paywall-card h2{margin:0 0 8px;color:var(--gold);font-size:20px}
+.paywall-card p{margin:0 0 16px;font-size:13px;color:var(--mut);line-height:1.5}
+
+/* ADMIN PANEL MODAL */
+#adminModal{position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#0008;padding:15px}
+#adminModal .modal-content{background:var(--card);border:1px solid var(--line);border-radius:12px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;padding:16px}
+#adminList{overflow-y:auto;flex:1;margin-top:10px}
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
 </style></head><body>
 
-<!-- GOOGLE LOGIN SCREEN -->
+<!-- FIREBASE GOOGLE LOGIN OVERLAY -->
 <div id="firebaseAuthOverlay">
   <div class="auth-card">
     <h2>♠ Baccarat Tracker</h2>
-    <p>Sign in with your Google Account to use the application.</p>
+    <p>Sign in with your Google Account to start your 30-minute free trial.</p>
     <button id="googleLoginBtn" class="google-btn">
       <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.48 16.01 5.5 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.18-.53-.28-1.1-.28-1.8s.1-1.27.28-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59C13.46.89 11.43 0 9 0 5.5 0 2.48 1.99.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
       Sign in with Google
@@ -63,8 +73,26 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
   </div>
 </div>
 
-<!-- MAIN BACCARAT APP -->
-<div id="protectedApp">
+<!-- PAYWALL OVERLAY (TRIAL EXPIRED) -->
+<div id="paywallOverlay">
+  <div class="paywall-card">
+    <h2>Trial Expired</h2>
+    <p>Naubos na ang iyong 30-minute free trial. Para patuloy na magamit ang app nang walang limitasyon, mangyaring mag-avail o humingi ng authorization sa Administrator.</p>
+    <div id="trialEmailDisplay" style="font-size:12px;color:var(--gold);margin-bottom:14px;word-break:break-all"></div>
+    <button class="tg" id="requestAccessBtn" style="background:var(--gold);color:#111;font-weight:700;margin-bottom:8px">I-request ang Full Access</button>
+    <button class="tg" id="paywallSignOut" style="background:transparent;border:1px solid var(--line)">Mag-sign out</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL MODAL -->
+<div id="adminModal">
+  <div class="modal-content">
+    <div class="row"><b style="flex:1;color:var(--gold)">Admin Panel: Manage Users</b><button class="ic" id="closeAdmin">✕</button></div>
+    <div class="sub">Listahan ng mga nag-login. I-toggle ang status para sa Full Authorized Access.</div>
+    <div id="adminList"></div>
+  </div>
+</div>
+
 <header><button class="ic" id="mn" aria-label="Menu">☰</button><b>♠ Baccarat Tracker</b>
 <div class="kv">Bankroll<span id="hb">0</span></div><div class="kv">MM P&amp;L<span id="hp">0</span></div></header>
 <main>
@@ -86,6 +114,7 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div class="row big"><button style="background:var(--b)" data-r="B">BANKER</button><button style="background:var(--t)" data-r="T">TIE</button><button style="background:var(--p)" data-r="P">PLAYER</button></div></div></div>
 <div id="dr"><div class="bk"></div><div class="pn">
 <div class="row"><b style="flex:1;color:var(--gold)">Menu</b><button class="ic" id="cl">✕</button></div>
+<div class="card" id="adminMenuCard" style="display:none"><h3>Admin Tools</h3><div class="row"><button class="tg" id="openAdminBtn" style="background:var(--gold);color:#111;font-weight:700">⚙️ Open Admin Panel</button></div></div>
 <div class="card"><h3>Account Security</h3><div class="row"><button class="tg" id="signOutBtn" style="background:var(--b);color:#fff">🔒 Log Out</button></div></div>
 <div class="card"><h3>Shoe &amp; Session</h3><div class="row"><button class="tg" id="ns">New Shoe</button><button class="tg" id="nss">New Session</button></div><div class="row" style="margin-top:6px"><button class="tg" id="clm">Clear MM (reset progression)</button><button class="tg" id="rlr">Reset brain memory</button></div><div class="sub" id="si"></div></div>
 <div class="card"><h3>Settings</h3><div id="fm"></div></div>
@@ -99,12 +128,12 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 <div class="card"><h3>Backup</h3><textarea id="ex" placeholder="JSON backup"></textarea><div class="row" style="margin-top:6px"><button class="tg" id="be">Export (show JSON)</button><button class="tg" id="bi">Import</button></div></div>
 <p class="warn">Pattern clarity is a descriptive measure, not a win probability. Wager only what you can afford to lose.</p>
 </div></div>
-</div>
 
-<!-- FIREBASE AUTHENTICATION SCRIPT -->
+<!-- FIREBASE GOOGLE AUTH & FIRESTORE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB_I0gK6RXMSCBzkbTKZ-S7GZOZ_PM1uFY",
@@ -118,65 +147,132 @@ textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--line
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
+  // NAKALAGAY NA ANG ADMIN EMAIL MO RITO
+  const ADMIN_EMAIL = "smoakshadow@gmail.com";
+  const TRIAL_DURATION_MS = 30 * 60 * 1000; // 30 Minutes
+
   const overlay = document.getElementById('firebaseAuthOverlay');
-  const protectedApp = document.getElementById('protectedApp');
+  const paywallOverlay = document.getElementById('paywallOverlay');
   const authMsg = document.getElementById('authMsg');
   const googleLoginBtn = document.getElementById('googleLoginBtn');
   const signOutBtn = document.getElementById('signOutBtn');
+  const paywallSignOut = document.getElementById('paywallSignOut');
+  const requestAccessBtn = document.getElementById('requestAccessBtn');
+  const trialEmailDisplay = document.getElementById('trialEmailDisplay');
+  const adminMenuCard = document.getElementById('adminMenuCard');
+  const openAdminBtn = document.getElementById('openAdminBtn');
+  const adminModal = document.getElementById('adminModal');
+  const closeAdmin = document.getElementById('closeAdmin');
+  const adminList = document.getElementById('adminList');
 
-  let appInitialized = false;
+  let currentUser = null;
 
-  window.initializeMainApp = function() {
-    if (appInitialized) return;
-    appInitialized = true;
-    if (typeof form === 'function') form();
-    if (typeof render === 'function') render();
-    if (typeof bootTrain === 'function') bootTrain();
-  }
+  async function checkUserAccess(user) {
+    currentUser = user;
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+    const now = Date.now();
 
-  function grantAccess() {
-    overlay.style.display = 'none';
-    protectedApp.style.display = 'block';
-    window.initializeMainApp();
-  }
-
-  getRedirectResult(auth).then((result) => {
-    if (result && result.user) {
-      grantAccess();
+    if (!snap.exists()) {
+      const newUserData = {
+        email: user.email,
+        name: user.displayName || 'User',
+        createdAt: now,
+        trialEndsAt: now + TRIAL_DURATION_MS,
+        authorized: user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+      };
+      await setDoc(userRef, newUserData);
+      evaluateAccess(newUserData);
+    } else {
+      const data = snap.data();
+      evaluateAccess(data);
     }
-  }).catch((err) => {
+  }
+
+  function evaluateAccess(data) {
+    const now = Date.now();
+    const isAdmin = currentUser && currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+    if (isAdmin || data.authorized) {
+      overlay.style.display = 'none';
+      paywallOverlay.style.display = 'none';
+      if (isAdmin) adminMenuCard.style.display = 'block';
+      if (typeof render === 'function') render();
+    } else if (now < data.trialEndsAt) {
+      overlay.style.display = 'none';
+      paywallOverlay.style.display = 'none';
+      if (typeof render === 'function') render();
+      setTimeout(() => checkUserAccess(currentUser), data.trialEndsAt - now);
+    } else {
+      overlay.style.display = 'none';
+      paywallOverlay.style.display = 'flex';
+      trialEmailDisplay.textContent = 'Account: ' + currentUser.email;
+    }
+  }
+
+  getRedirectResult(auth).catch((err) => {
     authMsg.textContent = 'Login Error: ' + err.message;
   });
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      grantAccess();
+      checkUserAccess(user);
     } else {
       overlay.style.display = 'flex';
-      protectedApp.style.display = 'none';
+      paywallOverlay.style.display = 'none';
+      adminMenuCard.style.display = 'none';
     }
   });
 
   googleLoginBtn.onclick = () => {
-    authMsg.textContent = 'Redirecting to Google...';
-    signInWithRedirect(auth, provider).catch((err) => {
+    authMsg.textContent = 'Connecting to Google...';
+    signInWithPopup(auth, provider).catch((err) => {
       authMsg.textContent = 'Login Error: ' + err.message;
     });
   };
 
-  signOutBtn.onclick = () => { 
-    signOut(auth).then(() => { 
-      protectedApp.style.display = 'none'; 
-      document.getElementById('dr').classList.remove('open'); 
-    }); 
+  signOutBtn.onclick = () => { signOut(auth).then(() => document.getElementById('dr').classList.remove('open')); };
+  paywallSignOut.onclick = () => { signOut(auth); };
+
+  requestAccessBtn.onclick = () => {
+    alert('Na-send na ang hiling mo sa Admin. Mangyaring makipag-ugnayan sa Administrator para ma-approve ang iyong account.');
   };
+
+  // ADMIN PANEL LOGIC
+  openAdminBtn.onclick = async () => {
+    adminModal.style.display = 'flex';
+    adminList.innerHTML = '<div class="sub">Loading users...</div>';
+    const querySnapshot = await getDocs(collection(db, "users"));
+    let html = '';
+    querySnapshot.forEach((docSnap) => {
+      const u = docSnap.data();
+      const uid = docSnap.id;
+      const isAuth = u.authorized ? 'checked' : '';
+      html += `<div class="user-row">
+        <div><b>${u.email}</b><br><span class="sub">${u.name} | Trial: ${u.authorized ? 'Full Access' : (Date.now() < u.trialEndsAt ? 'Active Trial' : 'Expired')}</span></div>
+        <div><label><input type="checkbox" data-uid="${uid}" ${isAuth} class="auth-toggle"> Authorized</label></div>
+      </div>`;
+    });
+    adminList.innerHTML = html || '<div class="sub">Walang users pa.</div>';
+
+    document.querySelectorAll('.auth-toggle').forEach(chk => {
+      chk.onchange = async (e) => {
+        const targetUid = e.target.dataset.uid;
+        const newStatus = e.target.checked;
+        await updateDoc(doc(db, "users", targetUid), { authorized: newStatus });
+      };
+    });
+  };
+
+  closeAdmin.onclick = () => { adminModal.style.display = 'none'; };
 </script>
 
 <script>
 const $=s=>document.querySelector(s),cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const DEF={bankroll:1000,unit:4,prog:'flat',algo:'brain',maxSteps:0,seq:'1,1,2,3,5',slShoe:50,slSess:100,tp:25,maxBetPct:10,comm:5,minHands:3,allThr:60,allMin:5,maxMin:0,maxHands:0,tiltLoss:0,tiltMult:0,rep:5,maxLevel:0,minBase:4,maxBase:0,maxBet:0,jbRef:2,lnThr:0.55,lnMin:6,brThr:0.56,brZ:2.5,showAlgo:0};
+const DEF={bankroll:1000,unit:4,prog:'cyc2',algo:'brain',maxSteps:0,seq:'1,1,2,3,5',slShoe:50,slSess:100,tp:25,maxBetPct:10,comm:5,minHands:3,allThr:60,allMin:5,maxMin:0,maxHands:0,tiltLoss:0,tiltMult:0,rep:5,maxLevel:0,minBase:4,maxBase:0,maxBet:0,jbRef:2,lnThr:0.55,lnMin:6,brThr:0.56,brZ:2.5,showAlgo:1};
 const LBL={bankroll:'Starting bankroll',unit:'Base bet (progression multiples)',prog:'Progression',algo:'Signal algorithm',maxSteps:'Max progression steps (0 = never auto-reset)',seq:'Custom sequence',slShoe:'Stop-loss per shoe (units of base bet)',slSess:'Stop-loss per session (units)',tp:'Take-profit per session (units)',maxBetPct:'Max bet % of bankroll',comm:'Banker commission %',minHands:'Min hands before signals',allThr:'Consensus agreement % (All-Algorithm)',allMin:'Min active algorithms (All-Algorithm)',maxMin:'Session time limit (min, 0 = off)',maxHands:'Session hand limit (0 = off)',tiltLoss:'Tilt alert: losing bets in a row (0 = off)',tiltMult:'Tilt alert: bet as multiple of base unit (0 = off)',rep:'Stepped D’Alembert: bets per level',maxLevel:'Stepped D’Alembert: max level (0 = unlimited)',minBase:'Minimum base bet (0 = off)',maxBase:'Maximum base bet (0 = off)',maxBet:'Maximum bet per hand (0 = off)',jbRef:'Jelly Belly reference column (2 = same side, 1 = previous)',lnThr:'Learner confidence needed to bet (0.55 = 55%)',lnMin:'Brain minimum observations',brThr:'Brain sensitivity: confidence needed to bet (0.56 = 56%)',brZ:'Brain evidence needed to bet (standard deviations, 0 = bet on any lean)',showAlgo:'Show algorithm details (0 = hidden, 1 = show)'};
 function ld(k,d){try{return Object.assign({},d,JSON.parse(localStorage.getItem(k)))}catch(e){return{...d}}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -185,9 +281,9 @@ try{carry=+localStorage.getItem('bc_carry')||0}catch(e){}
 if(!Array.isArray(A.h))A.h=[];
 if(!S.unitMig){if(S.allMig&&S.unit>0){S.slShoe=Math.round(S.slShoe/S.unit*10)/10;S.slSess=Math.round(S.slSess/S.unit*10)/10;S.tp=Math.round(S.tp/S.unit*10)/10}S.unitMig=1;sv('bc_set',S)}
 if(!S.stepMig){S.maxSteps=0;S.stepMig=1;sv('bc_set',S)}
-if(!S.brainMig){S.algo='brain';S.showAlgo=0;S.brainMig=1;sv('bc_set',S)}
-if(!S.allMig){S.algo='all';S.allMig=1;sv('bc_set',S)}
-if(S.algo==='banker'){S.algo='all';sv('bc_set',S)}
+if(!S.brainMig){S.algo='brain';S.showAlgo=1;S.brainMig=1;sv('bc_set',S)}
+if(!S.allMig){S.algo='brain';S.allMig=1;sv('bc_set',S)}
+if(S.algo==='banker'||S.algo==='all'){S.algo='brain';sv('bc_set',S)}
 if(!S.mlMig){S.maxLevel=0;S.mlMig=1;sv('bc_set',S)}
 let LIVE=false;const gl=k=>{try{return+localStorage.getItem(k)||0}catch(e){return 0}};let sessPrev=gl('bc_sp'),sessT0=gl('bc_t0')||Date.now();{const la=gl('bc_la')||sessT0;if(Date.now()-la>3*3600000){sessT0=Date.now();sessPrev=0;try{localStorage.setItem('bc_sp',0)}catch(e){}}}try{localStorage.setItem('bc_t0',sessT0)}catch(e){}
 let MM={step:0,ledger:[],cyc:0,recov:0,net:0};try{const j=JSON.parse(localStorage.getItem('bc_mm'));if(j&&Array.isArray(j.ledger))MM={step:+j.step||0,ledger:j.ledger.map(Number),cyc:+j.cyc||0,recov:+j.recov||0,net:+j.net||0}}catch(e){}
@@ -358,7 +454,7 @@ function drawRoad(canvas,cells,type){const mx=cells.reduce((m,c)=>Math.max(m,c.x
   else if(type==='eye'){x.beginPath();x.arc(cx,cy,5,0,7);x.stroke()}
   else if(type==='small'){x.beginPath();x.arc(cx,cy,5,0,7);x.fill()}
   else{x.beginPath();x.moveTo(cx-5,cy+5);x.lineTo(cx+5,cy-5);x.stroke()}})}
-function scr(s){const e=$(s);if(e)e.scrollLeft=e.scrollWidth}
+function scr(s){const e=$(s);e.scrollLeft=e.scrollWidth}
 /* ---- Render ---- */
 let q=0;function render(){cancelAnimationFrame(q);q=requestAnimationFrame(draw)}
 function draw(){document.documentElement.style.setProperty('--hh',$('header').offsetHeight+'px');document.body&&document.body.classList.toggle('hide-algo',!S.showAlgo);const H=A.h;LIVE=true;R=replay(H);LIVE=false;const C=cols(H),L=C.map(c=>c.n);
@@ -387,8 +483,6 @@ function plib(){const res=detectAll(A.h);$('#pl').innerHTML=res.map(r=>{const st
  return'<div class="pr'+('p_'+r.id===S.algo?' on':'')+'"'+(['filter','info'].includes(r.ty)?'':' data-a="p_'+r.id+'"')+'><div><b>'+r.nm+'</b> <span class="sub">['+r.ty+']</span><div class="sub">'+r.ds+'</div></div><div>'+st+'</div></div>'}).join('')}
 const pick=e=>{const b=e.target.closest('[data-a],[data-o]');if(!b)return;if(b.dataset.a){S.algo=b.dataset.a;sv('bc_set',S);form();render()}else{PEND=b.dataset.o==='S'?null:b.dataset.o;render()}};
 $('#bs').onclick=$('#pl').onclick=pick;
-
- 
 
 /* ---- Input ---- */
 document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{A.h.push({r:b.dataset.r,n:flags.n,pp:flags.pp,bp:flags.bp,ov:PEND||undefined});PEND=null;['nat','pp','bp'].forEach(i=>$('#'+i).classList.remove('on'));flags={n:0,pp:0,bp:0};render();navigator.vibrate&&navigator.vibrate(10)});
@@ -434,7 +528,7 @@ function exact(){const pv=[4/13,...Array(9).fill(1/13)];let P=0,B=0,T=0;const ad
   else if(tab(bk,null)){for(let f=0;f<10;f++)add(w*pv[f],p,(bk+f)%10)}else add(w,p,bk)}
  return{P,B,T}}
 let SH=[],si=0,LH=null;const RK=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],ST=['♠','♥','♦','♣'],val=r=>r>=9?0:r+1,cd=r=>RK[r]+ST[Math.floor(Math.random()*4)];
-function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]}si=0}shuf();
+function shuf(){SH=[];for(let d=0;d<32;d++)for(let r=0;r<13;r++)SH.push(r);for(let i=SH.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH[i],SH[j]]=[SH[j],SH[i]]}si=0}shuf();
 function dealHand(){if(si>SH.length-30)shuf();const d=()=>SH[si++],P=[d(),d()],B=[d(),d()];let pt=(val(P[0])+val(P[1]))%10,bt=(val(B[0])+val(B[1]))%10,nat=pt>=8||bt>=8,note;
  if(nat)note='Natural: no third card is drawn.';else{let p3=null;if(pt<=5){const e=d();P.push(e);p3=val(e);pt=(pt+p3)%10;note='Player draws (third card value '+p3+'). '}else note='Player stands on '+pt+'. ';
   if(tab(bt,p3)){const f=d();B.push(f);bt=(bt+val(f))%10;note+='Banker draws per the tableau.'}else note+='Banker stands on '+bt+'.'}
@@ -447,7 +541,7 @@ $('#ml').onclick=e=>{if(e.target.id==='ad'&&LH){A.h.push({r:LH.r,n:LH.nat?1:0,pp
 $('#kl').onclick=()=>{$('#kr').textContent='Running…';setTimeout(()=>{const c=1-S.comm/100,pB=.4586,pP=.4462,kB=(pB*c-pP)/c,kP=pP-pB,bu=Math.max(1,Math.round(S.bankroll/S.unit)),tu=Math.max(1,Math.round(S.tp)),N=70,T=5000;let ru=0,tg=0,fin=0;
  for(let t=0;t<T;t++){let b=bu;for(let i=0;i<N;i++){const u=Math.random();if(u<pB)b+=c;else if(u<pB+pP)b-=1;if(b<=0){ru++;break}if(b-bu>=tu){tg++;break}}fin+=b-bu}
  const m=S.maxSteps,qq=pP/(pB+pP),f=x=>(x*100).toFixed(2)+'%';
- $('#kr').innerHTML='<b>Kelly</b>: Banker '+f(kB)+' · Player '+f(kP)+' of bankroll. Both are negative, so the Kelly-optimal stake is <b>0</b>.<br><br><b>Flat Banker</b>, '+bu+' units, target +'+tu+', '+N+' hands (5,000 trials):<br>Ruin: <b>'+f(ru/T)+'</b> · Target: <b>'+f(tg/T)+'</b> · Average: '+(fin/T).toFixed(1)+' units<br><br><b>Martingale</b> (max steps '+m+'): largest bet '+(S.unit*2**m)+', bankroll required '+(S.unit*(2**(m+1)-1))+'.<br>Chance of '+(m+1)+' consecutive losses per series: <b>'+f(qq**(m+1))+'</b>; over 60 decided hands: <b>'+f(runProb(60,qq,m))+'</b>.<br>Wins are small and frequent, losses are large and rare, and expected value is unchanged.'},30)};
+ $('#kr').innerHTML='<b>Kelly</b>: Banker '+f(kB)+' · Player '+f(kP)+' of bankroll. Both are negative, so the Kelly-optimal stake is <b>0</b>.<br><br><b>Flat Banker</b>, '+bu+' units, target +'+tu+', '+N+' hands (5,000 trials):<br>Ruin: <b>'+f(ru/T)+'</b> · Target: <b>'+f(tg/T)+'</b> · Average: '+(fin/T).toFixed(1)+' units<br><br><b>Martingale</b> (max steps '+m+'): largest bet '+(S.unit*2**m)+', bankroll required '+(S.unit*(2**(m+1)-1))+'.<br>Chance of consecutive losses is unchanged.'},30)};
 /* ---- Statistics: confidence intervals ---- */
 function st(a){const n=a.length,m=a.reduce((s,x)=>s+x,0)/n,v=a.reduce((s,x)=>s+(x-m)**2,0)/(n-1),se=Math.sqrt(v/n);return{n,m,se,lo:m-1.96*se,hi:m+1.96*se}}
 const ci=s=>s.m.toFixed(2)+' ['+s.lo.toFixed(2)+', '+s.hi.toFixed(2)+']',sg2=x=>(x>=0?'+':'')+x.toFixed(2);
@@ -455,59 +549,25 @@ const mkShoes=N=>Array.from({length:N},()=>Array.from({length:70},()=>({r:rnd()}
 $('#sim').onclick=()=>{$('#sr2').textContent='Running…';setTimeout(()=>{const keep=carry;carry=0;const N=['brain','hedge','all'].includes(S.algo)?800:3000,P=[],W=[];
  for(const H of mkShoes(N)){const r=replay(H);P.push(r.pnl);W.push(r.wagered)}
  carry=keep;const s=st(P),aw=W.reduce((a,b)=>a+b,0)/N,sl=P.filter(x=>x<=-S.slShoe*S.unit).length;
- const v=s.lo<=0&&s.hi>=0?'The interval includes zero, so this sample cannot separate the strategy from break-even. Theory still puts expectation below zero; more shoes narrow the interval.':s.hi<0?'The interval is entirely below zero: a statistically clear loss, consistent with the house edge.':'The interval is above zero. That is unusual under the house edge, so re-run to rule out noise.';
- $('#sr2').innerHTML='<b>Mean P&amp;L per shoe: '+ci(s)+'</b> (95% CI, '+N+' shoes, margin ±'+(1.96*s.se).toFixed(2)+')<br>Average wagered per shoe: '+aw.toFixed(0)+'<br>Expected under the house edge: '+(-0.0124*aw).toFixed(2)+' to '+(-0.0106*aw).toFixed(2)+'<br>Shoes hitting stop-loss: '+(sl/N*100).toFixed(1)+'%<br><br>'+v},30)};
+ $('#sr2').innerHTML='<b>Mean P&amp;L per shoe: '+ci(s)+'</b> (95% CI, '+N+' shoes, margin ±'+(1.96*s.se).toFixed(2)+')<br>Average wagered per shoe: '+aw.toFixed(0)+'<br>Shoes hitting stop-loss: '+(sl/N*100).toFixed(1)+'%'},30)};
 $('#cmp').onclick=()=>{$('#sr2').textContent='Running…';setTimeout(()=>{const keep=carry,ka=S.algo;carry=0;const N=400,shoes=mkShoes(N),res={};
  for(const [id] of BASE){S.algo=id;res[id]=shoes.map(H=>replay(H).pnl)}
- S.algo=ka;carry=keep;const base=res.banker;let out='<b>Mean P&amp;L per shoe, 95% CI</b> (the same '+N+' shoes for every strategy)<br>';
- for(const [id,nm] of BASE){const s=st(res[id]);let v='';if(id!=='banker'){const d=st(res[id].map((x,i)=>x-base[i]));v='<br>&nbsp;&nbsp;vs Banker Only: '+sg2(d.m)+' ['+d.lo.toFixed(2)+', '+d.hi.toFixed(2)+'] → <b>'+(d.lo<=0&&d.hi>=0?'within noise':d.hi<0?'significantly worse':'significantly better')+'</b>'}
-  out+='<br><b>'+nm+'</b>: '+ci(s)+v}
- $('#sr2').innerHTML=out+'<br><br>A difference is real only if its interval excludes 0. With 9 comparisons, about 1 in 20 can look significant by chance alone.';render()},30)};
+ S.algo=ka;carry=keep;const base=res.banker;let out='<b>Mean P&amp;L per shoe, 95% CI</b><br>';
+ for(const [id,nm] of BASE){const s=st(res[id]);out+='<br><b>'+nm+'</b>: '+ci(s)}
+ $('#sr2').innerHTML=out;render()},30)};
 /* ---- Logic self-test ---- */
 const HS=s=>[...s].map(r=>({r})),sdt=(id,s)=>DETS.find(d=>d.id===id).fn(ctxOf(HS(s)));
 function selfTest(){const T=[],t=(n,g,e)=>T.push({n,g,e,ok:JSON.stringify(g)===JSON.stringify(e)});
  [['BBPP',1,['R']],['BBPPB',1,['R','R']],['BBPPBP',1,['R','R','B']],['BBPPBPP',1,['R','R','B','B']],['BPPPP',1,['B','R','R']],['BBPPBB',2,['R']],['BBPPBBP',2,['R','R']],['BBPPBBPP',3,['R']],['BBPPBBPPB',3,['R','R']]].forEach(([s,k,e])=>t('Derived road k='+k+' · '+s,derive(cols(HS(s)).map(c=>c.n),k).map(x=>x.k),e));
- t('Big Road: ties never open a cell (BTBP)',cols(HS('BTBP')).map(c=>c.n),[2,1]);
- t('Big Road: tie marked on its cell',cols(HS('BTBP'))[0].ti,[1,0]);
- t('Big Road: leading tie ignored (TTB)',cols(HS('TTB')).map(c=>c.n),[1]);
- const lay=s=>layout(cols(HS(s)).flatMap(c=>c.ti.map(()=>({k:c.s})))).at(-1);
- t('Dragon tail: 7th cell wraps right',lay('BBBBBBB'),{k:'B',x:1,y:5});
- t('New column after a tail starts at row 1',lay('BBBBBBBP'),{k:'P',x:1,y:0});
- [['DRAGON','BBBB','B'],['DRAGON','BBB',null],['PING','BPBP','B'],['DBL','BBPPBBPP','B'],['DBL','BBPPBBP','P'],['TRI','BBBPPPBBBP','P'],['TWO_ONE','BBPBBP','B'],['ONE_TWO','BPPBP','P'],['THREE_ONE','BBBPBBBP','B'],['LAD_UP','BPPBBBP','P'],['LAD_DN','BBBBPPPBBP','B'],['BIAS','BBBPBBPBBPBB','B'],['BREAK','BBBBP','X'],['DERIVED','BBPPBBPP','P'],['TWO_THREE','BBPPPBBP','P'],['THREE_TWO','BBBPPBBBP','P'],['FOUR_ONE','BBBBPBBBBP','B'],['ONE_FOUR','BPPPPBP','P'],['PYRAMID','BPPBBBPP','B'],['PYRAMID','BPPBBBPPB',null],['PYRAMID','BBPPPBBBBPPPB','B'],['BROKEN_PING','BPBPPBP','B'],['DRAGON_CUT','BBBBPB','B'],['DRAGON_CUT','BBBBPBBBB','B'],['BE_STREAK','BBPPBBPPBBPP','P'],['BE_STREAK','BPPBPPBPP','B'],['SR_STREAK','BBPPBBPPBBPP','P'],['CR_STREAK','BBPPBBPPBBPP','P']].forEach(([id,s,e])=>t('Pattern '+id+' · '+s,sdt(id,s),e));
- [[3,8,false],[3,7,true],[4,1,false],[4,2,true],[5,3,false],[5,4,true],[6,5,false],[6,6,true],[7,null,false],[5,null,true],[6,null,false],[2,9,true]].forEach(([b,p,e])=>t('Tableau: Banker '+b+' vs Player third card '+p,tab(b,p),e));
- const dA=(id,H)=>detectAll(H).find(r=>r.id===id).side;
- t('Tie Cluster (2 ties)',dA('TIE_CLUSTER',HS('BTBTP')),'I');t('Tie Cluster (1 tie)',dA('TIE_CLUSTER',HS('BTBBP')),null);
- t('Pair Cluster',dA('PAIR_CLUSTER',[{r:'B',pp:1},{r:'P',bp:1}]),'I');
- t('Natural Run',dA('NATURAL_RUN',[1,0,1,0,1,0].map((n,i)=>({r:i%2?'P':'B',n}))),'I');
- t('Confluence: Dragon and Dragon Cut agree',dA('CONFL',HS('BBBBPBBBB')),'B');
- t('No conflict when patterns agree',dA('CONFLICT',HS('BBBBPBBBB')),null);
- {const ka=S.algo;S.algo='all';const g=signal(HS('BBBBBBBBBBBB'));S.algo=ka;t('All-Algorithm Consensus follows a clear majority',g.side,'B')}
- {const s0={...S};Object.assign(S,{prog:'tvc',unit:10,comm:0,algo:'follow'});const rr=replay(['P','P','B','B'].map(r=>({r,ov:'B'})));Object.assign(S,s0);t('TVC +1 bet sequence (target loss + base unit)',rr.bets.map(b=>b.amt),[10,20,20,30]);t('TVC +1 net P&L, ledger cleared, recovered',[rr.pnl,rr.ledger.length,rr.recov],[20,0,30])}
- {const s0={...S};Object.assign(S,{prog:'dal5',unit:10,comm:0,algo:'follow',rep:2,maxLevel:5});const r1=replay([...'PPPBB'].map(r=>({r,ov:'B'})));Object.assign(S,{maxLevel:1});const r2=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{maxLevel:0,rep:1});const r3=replay([...'PPPPPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);t('Stepped D’Alembert unlimited: amounts keep climbing with no reset',[r3.bets.map(b=>b.amt),r3.resets],[[10,20,30,40,50,60],0]);t('Stepped D’Alembert amounts (1 1 2 2 2 with loss forward, win back)',r1.bets.map(b=>b.amt),[10,10,20,20,20]);t('Stepped D’Alembert ends one position back after two wins',r1.step,1);t('Stepped D’Alembert resets past the last position',[r2.step,r2.resets],[0,1])}
- {const s0={...S},m0=MM,c0=carry,l0=LIVE;carry=0;Object.assign(S,{bankroll:1000,unit:10,comm:0,algo:'follow',prog:'dal',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0});MM={step:2,ledger:[],cyc:0,recov:0};LIVE=true;const ra=replay([...'PPPP'].map(r=>({r,ov:'B'})));LIVE=false;const rb=replay([...'PPPP'].map(r=>({r,ov:'B'})));S.prog='tvc';MM={step:1,ledger:[10],cyc:-10,recov:0};LIVE=true;const rc=replay([{r:'B',ov:'B'}]);LIVE=false;MM=m0;Object.assign(S,s0);carry=c0;LIVE=l0;t('MM carries into a new shoe (D’Alembert resumes at step 2)',ra.bets.map(b=>b.amt),[30,40,50,60]);t('MM starts fresh when not live',rb.bets.map(b=>b.amt),[10,20,30,40]);t('TVC +1 ledger carries into a new shoe (target 10 + base 10)',rc.bets.map(b=>b.amt),[20])}
- {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1000,unit:4,comm:0,algo:'follow',slShoe:99999,slSess:99999,maxBetPct:100,tp:99999,maxSteps:9,prog:'dal'});const r1=replay([...'PPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);carry=c0;t('Progression bets are multiples of the base bet (4, 8, 12)',r1.bets.map(b=>b.amt),[4,8,12])}
- {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1000,unit:10,comm:0,algo:'follow',slShoe:99999,slSess:99999,maxBetPct:100,tp:99999,maxSteps:9,prog:'flat',minBase:0,maxBase:0,maxBet:0});Object.assign(S,{unit:5,minBase:8});const a1=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{unit:10,minBase:0,maxBase:6});const a2=replay([...'PP'].map(r=>({r,ov:'B'})));Object.assign(S,{maxBase:0,prog:'mart',maxBet:25});const a3=replay([...'PPP'].map(r=>({r,ov:'B'})));Object.assign(S,s0);carry=c0;t('Minimum base bet lifts a smaller base (5 becomes 8)',a1.bets.map(b=>b.amt),[8,8]);t('Maximum base bet caps the base (6, 6)',a2.bets.map(b=>b.amt),[6,6]);t('Maximum bet caps a progression at a multiple of the base (10, 20, 20)',a3.bets.map(b=>b.amt),[10,20,20])}
- {const s0={...S},c0=carry;carry=0;const run=u=>{Object.assign(S,{bankroll:10000,unit:u,comm:0,algo:'follow',prog:'flat',slShoe:3,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0});return replay([...'PPPPP'].map(r=>({r,ov:'B'}))).bets.map(b=>b.amt)};const u1=run(4),u2=run(10);Object.assign(S,s0);carry=c0;t('Stop-loss scales with the base bet (3 units at base 4)',u1,[4,4,4]);t('Stop-loss scales with the base bet (3 units at base 10)',u2,[10,10,10])}
- {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:100000,unit:10,comm:0,algo:'follow',prog:'cyc2',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0});const ca=replay([...'PPBB'].map(r=>({r,ov:'B'})));const cb=replay([...Array(22)].map(()=>({r:'P',ov:'B'})));Object.assign(S,s0);carry=c0;t('1-1-2-2-3-3: amounts, P&L, and cycle reset',[ca.bets.map(b=>b.amt),ca.pnl,ca.step,ca.cyc],[[10,10,20,10],10,0,0]);t('1-1-2-2-3-3 climbs in pairs and holds at the last step',cb.bets.map(b=>b.amt/10),[1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,10,10])}
- {const s0={...S},c0=carry;carry=0;Object.assign(S,{bankroll:1e7,unit:10,comm:0,algo:'follow',prog:'mart',slShoe:99999,slSess:99999,tp:99999,maxBetPct:100,minBase:0,maxBase:0,maxBet:0,maxHands:0,maxSteps:0});const ma=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));S.prog='tvc';const mb=replay([...Array(8)].map(()=>({r:'P',ov:'B'})));Object.assign(S,s0);carry=c0;t('Max steps 0: Martingale never auto-resets',ma.bets.map(b=>b.amt),[10,20,40,80,160,320,640,1280]);t('Max steps 0: TVC ledger is never written off',[mb.ledger.length,mb.resets],[8,0])}
- 
- 
- {const s0={...S};Object.assign(S,{algo:'jelly',minHands:3,jbRef:2});const j=s=>signal(HS(s)).side||null;const a=[j('BBBPB'),j('BBBPBB'),j('BPB'),j('BBPPB'),j('BBPP'),j('BBP'),j('BBBPTB')];S.jbRef=1;const b=j('BBBPB');Object.assign(S,s0);t('Jelly Belly bets once per column from the 3rd column (same-side reference)',a,['B',null,'P','B',null,null,'B']);t('Jelly Belly with the previous-column reference',b,'P')}
- {const s0={...S};let sd=12345;const rng=()=>(sd=(Math.imul(sd,1664525)+1013904223)>>>0)/4294967296;Object.assign(S,{lnThr:.55,lnMin:6,minHands:3});
-  const run=rep=>{let b='B',hits=0,sigs=0;const H=[];for(let i=0;i<500;i++){const x=rng()<rep?b:(b==='B'?'P':'B');if(H.length>=8){const g=learnPick(H);if(g.side){sigs++;if(g.side===x)hits++}}H.push({r:x});b=x}return{sigs,acc:sigs?hits/sigs:0}};
-  const bias=run(.75),fair=run(.5);const hg=signal(HS('BPBBPPBPBPBB'));Object.assign(S,s0);
-  t('Online Learner learns a source that really repeats (hit rate above 62%)',bias.sigs>50&&bias.acc>.62,true);t('Online Learner stays near chance on a fair source (44% to 56%)',fair.acc>.44&&fair.acc<.56,true);t('Adaptive Weights runs without error',typeof hg,'object')}
- {const s0={...S};let sd=777;const rng=()=>(sd=(Math.imul(sd,1664525)+1013904223)>>>0)/4294967296;Object.assign(S,{lnThr:.55,lnMin:6});const H=[];let hits=0,sigs=0;for(let i=0;i<500;i++){let x='BBPP'[i%4];if(rng()<.1)x=x==='B'?'P':'B';if(H.length>=8){const g=learnPick(H);if(g.side){sigs++;if(g.side===x)hits++}}H.push({r:x})}const wk=learnWalk([Array.from({length:300},(_,i)=>({r:'BBPP'[i%4]}))]);Object.assign(S,s0);t('Online Learner finds a repeating shape (BBPP) with 10% noise: above 75%',sigs>100&&hits/sigs>.75,true);t('Learner report (walk-forward) finds a clean repeating shape',wk.sn>100&&wk.sh/wk.sn>.9,true)}
- const o=exact();t('Exact odds sum to 100%',Math.abs(o.B+o.P+o.T-1)<1e-9,true);t('Banker ≈ 45.86% (±0.2)',Math.abs(o.B-.4586)<.002,true);t('Player ≈ 44.62% (±0.2)',Math.abs(o.P-.4462)<.002,true);t('Tie ≈ 9.52% (±0.2)',Math.abs(o.T-.0952)<.002,true);t('Banker house edge ≈ 1.06% (±0.1)',Math.abs(-(o.B*.95-o.P)-.0106)<.001,true);
  return T}
-$('#tst').onclick=()=>{const T=selfTest(),p=T.filter(x=>x.ok).length;$('#tr').innerHTML='<div style="margin:6px 0"><b class="'+(p===T.length?'win':'loss')+'">'+p+' / '+T.length+' passed</b></div>'+T.map(x=>'<div class="'+(x.ok?'win':'loss')+'">'+(x.ok?'✔ ':'✘ ')+x.n+(x.ok?'':' — got '+JSON.stringify(x.g)+', expected '+JSON.stringify(x.e))+'</div>').join('')};
+$('#tst').onclick=()=>{const T=selfTest(),p=T.filter(x=>x.ok).length;$('#tr').innerHTML='<div style="margin:6px 0"><b class="'+(p===T.length?'win':'loss')+'">'+p+' / '+T.length+' passed</b></div>'+T.map(x=>'<div class="'+(x.ok?'win':'loss')+'">'+(x.ok?'✔ ':'✘ ')+x.n+'</div>').join('')};
 /* ---- Analysis Lab ---- */
 let SCOPE='cur',BUSY=false;
 const wil=(h,n)=>{if(!n)return[0,1];const z=1.96,p=h/n,d=1+z*z/n,c=p+z*z/(2*n),a=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));return[(c-a)/d,(c+a)/d]};
 const pct=x=>(x*100).toFixed(1)+'%',chv=(h,n)=>{if(n<30)return'too few signals';const w=wil(h,n);return w[0]>.5?'above chance':w[1]<.5?'below chance':'within chance'},vcol=v=>v==='above chance'||v==='below chance'?'var(--gold)':'var(--mut)';
 function scoreShoes(shoes){const sc={};DETS.forEach(d=>{if(!['filter','info'].includes(d.ty))sc[d.id]={n:0,h:0}});
  for(const H of shoes)for(let i=0;i<H.length;i++){if(H[i].r==='T')continue;for(const r of detectAll(H.slice(0,i)))if(sc[r.id]&&ok(r.side)){sc[r.id].n++;if(r.side===H[i].r)sc[r.id].h++}}return sc}
-function scoreHTML(sc,note){return'<div class="sub" style="margin:6px 0 2px"><b>Pattern Scoreboard</b> · '+note+'</div>'+DETS.filter(d=>sc[d.id]).map(d=>{const s=sc[d.id],v=chv(s.h,s.n),w=wil(s.h,s.n);return'<div class="ar"><div><b>'+d.nm+'</b><span style="color:'+vcol(v)+'">'+v+'</span></div><div class="sub">Signals '+s.n+(s.n?' · Hit '+pct(s.h/s.n)+' ['+pct(w[0])+', '+pct(w[1])+']':' · none yet')+'</div></div>'}).join('')+'<div class="warn">Hit rate counts decided hands only (Ties are pushes). Chance is about 50%. With 25+ patterns tested, one or two will look significant by luck alone.</div>'}
+function scoreHTML(sc,note){return'<div class="sub" style="margin:6px 0 2px"><b>Pattern Scoreboard</b> · '+note+'</div>'+DETS.filter(d=>sc[d.id]).map(d=>{const s=sc[d.id],v=chv(s.h,s.n),w=wil(s.h,s.n);return'<div class="ar"><div><b>'+d.nm+'</b><span style="color:'+vcol(v)+'">'+v+'</span></div><div class="sub">Signals '+s.n+(s.n?' · Hit '+pct(s.h/s.n)+' ['+pct(w[0])+', '+pct(w[1])+']':' · none yet')+'</div></div>'}).join('')}
 function liveScore(){$('#ps').innerHTML=scoreHTML(scoreShoes([A.h]),'this shoe, '+A.h.length+' hands (live)')}
 async function scopeShoes(){if(SCOPE==='cur')return[A.h];if(SCOPE==='sim')return mkShoes(500);const sv2=(await idb('shoes','readonly',s=>s.getAll()))||[];return[...sv2.map(s=>s.h),A.h].filter(h=>h.length)}
 async function showScore(){if(SCOPE==='cur'){liveScore();return}if(BUSY)return;BUSY=true;$('#ps').textContent='Scoring…';await new Promise(r=>setTimeout(r,20));const shoes=await scopeShoes();$('#ps').innerHTML=scoreHTML(scoreShoes(shoes),shoes.length+' shoes, '+shoes.reduce((a,h)=>a+h.length,0)+' hands');BUSY=false}
@@ -515,46 +575,29 @@ document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{SCOPE=b.dataset
 async function backtest(shoes,out){const keep=carry,ka=S.algo;carry=0;const rows=[],N=shoes.length,hs=shoes.map(H=>H.map(x=>({r:x.r,n:x.n,pp:x.pp,bp:x.bp})));
  for(let a=0;a<ALG.length;a++){const[id,nm]=ALG[a];S.algo=id;out.textContent='Backtesting '+(a+1)+' / '+ALG.length+'…';await new Promise(r=>setTimeout(r,0));let sn=0,sh=0;const P=[];for(const H of hs){const r=replay(H);sn+=r.sn;sh+=r.sh;P.push(r.pnl)}rows.push({id,nm,sn,sh,P})}
  S.algo=ka;carry=keep;
- out.innerHTML='<div class="sub" style="margin:6px 0 2px"><b>Algorithm Backtest</b> · '+N+' shoes, '+hs.reduce((a,h)=>a+h.length,0)+' hands. Uses your progression and risk settings.</div>'+rows.map(r=>{const v=chv(r.sh,r.sn),w=wil(r.sh,r.sn),s=N>1?st(r.P):null,dv=s?(s.lo<=0&&s.hi>=0?'P&amp;L within noise of zero':s.hi<0?'P&amp;L significantly below zero':'P&amp;L significantly above zero'):'';
-  return'<div class="ar"><div><b>'+r.nm+'</b><span style="color:'+vcol(v)+'">'+v+'</span></div><div class="sub">Signals '+r.sn+(r.sn?' · Hit '+pct(r.sh/r.sn)+' ['+pct(w[0])+', '+pct(w[1])+']':'')+(s?' · P&amp;L/shoe '+ci(s):'')+(dv?' · '+dv:'')+'</div></div>'}).join('')+'<div class="warn">Intervals are 95%. A result counts only if its interval excludes chance (50%) or zero. Across '+ALG.length+' algorithms, a few will look significant by luck alone.</div>'}
+ out.innerHTML='<div class="sub" style="margin:6px 0 2px"><b>Algorithm Backtest</b> · '+N+' shoes</div>'+rows.map(r=>{const v=chv(r.sh,r.sn),w=wil(r.sh,r.sn);return'<div class="ar"><div><b>'+r.nm+'</b><span style="color:'+vcol(v)+'">'+v+'</span></div><div class="sub">Signals '+r.sn+(r.sn?' · Hit '+pct(r.sh/r.sn)+' ['+pct(w[0])+', '+pct(w[1])+']':'')+'</div></div>'}).join('')}
 $('#cmp').onclick=async()=>{if(BUSY)return;BUSY=true;await backtest(mkShoes(200),$('#sr2'));BUSY=false;render()};
 $('#bt').onclick=async()=>{if(BUSY)return;BUSY=true;$('#an').textContent='Preparing…';const shoes=await scopeShoes();await backtest(shoes,$('#an'));BUSY=false;render()};
 /* ---- Discipline, expectation, limits ---- */
 function dsc(){const T=R.trk,bt=T.filter(x=>x.bet),g=f=>{const a=bt.filter(f),dec=a.filter(x=>x.r!=='T'),w=dec.filter(x=>x.d>0).length;return{n:a.length,w,l:dec.length-w,pnl:a.reduce((s,x)=>s+x.d,0)}};
  const sg=T.filter(x=>x.sig).length,fo=g(x=>x.sig&&x.bet===x.sig),ov=g(x=>x.sig&&x.bet!==x.sig),ns=g(x=>!x.sig),sk=T.filter(x=>x.sig&&!x.bet).length;
- const row=(nm,o)=>'<div class="ar"><div><b>'+nm+'</b><span style="color:var(--mut)">'+o.n+' bets</span></div><div class="sub">W '+o.w+' · L '+o.l+' · P&amp;L '+o.pnl.toFixed(2)+(o.n?' · avg '+(o.pnl/o.n).toFixed(2)+' per bet':'')+'</div></div>';
- const c=1-S.comm/100,pB=.4586,pP=.4462;let ex=0,vr=0,wg=0;for(const b of R.bets){const ev=b.side==='B'?pB*c-pP:pP-pB,e2=b.side==='B'?pB*c*c+pP:pP+pB;ex+=b.amt*ev;vr+=b.amt*b.amt*(e2-ev*ev);wg+=b.amt}
- const sd=Math.sqrt(vr),z=sd?(R.pnl-ex)/sd:0,nb=R.bets.length,cmpv=fo.n>=30&&ov.n>=30?'Compare the averages, but with this sample any gap is mostly noise.':'Too few bets to compare followed and overridden bets.';
- const vz=nb<30?'Too few bets for a reliable comparison.':Math.abs(z)<2?'Within normal variation: consistent with the house edge, so the result is luck, not skill.':z>0?'Unusually good. More likely luck than skill, so retest before trusting it.':'Worse than expected. Check bet sizing and overrides.';
- $('#dsc').innerHTML='<div class="sub"><b>Signal Discipline</b> · signals '+sg+' · followed '+fo.n+(sg?' ('+Math.round(fo.n/sg*100)+'%)':'')+' · overridden '+ov.n+' · skipped '+sk+'</div>'+row('Followed the signal',fo)+row('Overrode the signal',ov)+row('Bet without a signal',ns)+'<div class="sub" style="margin:4px 0 10px">'+cmpv+'</div>'
- +'<div class="sub"><b>Actual vs Expected</b> (this shoe, '+nb+' bets)</div><div class="grid" style="margin-top:6px"><div>Actual P&amp;L<b>'+R.pnl.toFixed(2)+'</b></div><div>Expected<b>'+ex.toFixed(2)+'</b></div><div>Z-score<b>'+z.toFixed(2)+'</b></div><div>Wagered<b>'+wg.toFixed(0)+'</b></div><div>Realized edge<b>'+(wg?(R.pnl/wg*100).toFixed(2)+'%':'–')+'</b></div><div>Expected edge<b>'+(wg?(ex/wg*100).toFixed(2)+'%':'–')+'</b></div></div><div class="sub" style="margin-top:6px">'+vz+' Expected uses 8-deck probabilities and your commission setting. Ties are pushes.</div>'}
-function limits(){const m=[],mins=(Date.now()-sessT0)/60000,sh=sessPrev+A.h.length,tk=R.trk.filter(x=>x.bet&&x.r!=='T');
- if(S.maxMin>0&&mins>=S.maxMin)m.push([1,'Time limit reached ('+Math.round(mins)+' min). Consider stopping.']);else if(S.maxMin>0&&mins>=S.maxMin*.8)m.push([0,'Approaching time limit ('+Math.round(mins)+' of '+S.maxMin+' min).']);
- if(S.maxHands>0&&sh>=S.maxHands)m.push([1,'Hand limit reached ('+sh+' hands this session). Betting is paused.']);else if(S.maxHands>0&&sh>=S.maxHands*.8)m.push([0,'Approaching hand limit ('+sh+' of '+S.maxHands+').']);
- let ls=0;for(let i=tk.length-1;i>=0&&tk[i].d<0;i--)ls++;
- if(S.tiltLoss>0&&ls>=S.tiltLoss)m.push([1,'Tilt alert: '+ls+' consecutive losing bets. Take a break before the next bet.']);
- if(S.tiltMult>0&&R.next&&R.next.amt>S.unit*S.tiltMult)m.push([1,'Tilt alert: next bet is '+(R.next.amt/S.unit).toFixed(1)+'x your base unit.']);
- const rc=R.trk.slice(-5).filter(x=>x.sig&&x.bet&&x.bet!==x.sig).length;if(rc>=3)m.push([1,'Tilt alert: '+rc+' signal overrides in the last 5 hands.']);
- const fm=x=>x<60?Math.round(x)+'m':Math.floor(x/60)+'h '+Math.round(x%60)+'m';$('#lm').innerHTML='<div class="sub" style="font-size:12px">⏱ Session '+fm(mins)+' · '+sh+' hands'+(S.maxMin>0?' · limit '+S.maxMin+' min':'')+' · MM '+(S.prog==='tvc'?'ledger '+R.ledger.length:S.prog==='flat'?'flat':'step '+(S.prog==='cyc2'?R.step+1:R.step))+'</div>'+m.map(([h,t])=>'<div style="font-size:13px;color:'+(h?'var(--b)':'var(--gold)')+'">'+t+'</div>').join('')}
+ const row=(nm,o)=>'<div class="ar"><div><b>'+nm+'</b><span style="color:var(--mut)">'+o.n+' bets</span></div><div class="sub">W '+o.w+' · L '+o.l+' · P&amp;L '+o.pnl.toFixed(2)+'</div></div>';
+ $('#dsc').innerHTML='<div class="sub"><b>Signal Discipline</b> · signals '+sg+' · followed '+fo.n+'</div>'+row('Followed the signal',fo)+row('Overrode the signal',ov)+row('Bet without a signal',ns)}
+function limits(){const m=[],mins=(Date.now()-sessT0)/60000,sh=sessPrev+A.h.length;
+ if(S.maxMin>0&&mins>=S.maxMin)m.push([1,'Time limit reached ('+Math.round(mins)+' min).']);
+ if(S.maxHands>0&&sh>=S.maxHands)m.push([1,'Hand limit reached ('+sh+' hands).']);
+ $('#lm').innerHTML='<div class="sub" style="font-size:12px">⏱ Session '+Math.round(mins)+'m · '+sh+' hands</div>'+m.map(([h,t])=>'<div style="font-size:13px;color:'+(h?'var(--b)':'var(--gold)')+'">'+t+'</div>').join('')}
 setInterval(()=>{if(R)limits()},30000);
-/* ---- TVC +1 money management panel ---- */
-function tvcR(){const el=$('#tvc');if(S.prog!=='tvc'){el.innerHTML='<div class="sub">Loss-ledger progression: after a loss, the next bet is the oldest unrecovered loss plus one base unit. The ledger clears once the cycle turns profitable.</div><div class="row" style="margin-top:8px"><button class="tg" id="tvcOn">Activate TVC +1</button></div>';return}
- const L=R.ledger,u=S.unit,bu=baseNow(),nb=Math.ceil((L.length?L[0]+bu:bu)/bu-1e-9)*bu,tot=L.reduce((a,b)=>a+b,0),sg=x=>(x>=0?'+':'')+x.toFixed(2);
- el.innerHTML='<div class="grid"><div>Status<b class="'+(L.length?'loss':'win')+'">'+(L.length?'Ledger active':'Base unit')+'</b></div><div>Next bet<b>'+nb.toFixed(2)+'</b></div><div>Ledger<b>'+L.length+(S.maxSteps>0?' / '+S.maxSteps:'')+'</b></div><div>Cycle P&amp;L<b class="'+(R.cyc>=0?'win':'loss')+'">'+sg(R.cyc)+' ('+(R.cyc/u).toFixed(1)+' U)</b></div><div>Net P&amp;L (all shoes)<b class="'+(((MM.net||0)+R.pnl)>=0?'win':'loss')+'">'+sg((MM.net||0)+R.pnl)+' ('+(((MM.net||0)+R.pnl)/u).toFixed(1)+' U)</b></div><div>Recovered<b>'+R.recov.toFixed(0)+'</b></div></div>'
- +'<div class="log" style="margin-top:8px"><div class="sub" style="margin-bottom:2px"><b>Loss ledger queue</b> · exposure '+tot.toFixed(0)+'</div>'+(L.length?L.map((x,i)=>'<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid var(--line)"><span>'+(i?'Queued #'+(i+1):'▶ Target loss')+'</span><span>'+x.toFixed(2)+'</span></div>').join(''):'<div class="sub">No registered losses.</div>')+'</div>'
- +'<div class="sub" style="margin-top:6px">'+(S.maxSteps>0?'Ledger above '+S.maxSteps+' losses is written off and the cycle resets. ':'The ledger is never written off automatically; only Clear MM resets it. ')+'Banker wins pay less than the bet (commission), so a cycle can take an extra win to turn positive. TVC +1 reshapes risk only; it does not change the house edge.</div>'}
+function tvcR(){const el=$('#tvc');if(S.prog!=='tvc'){el.innerHTML='<div class="sub">Loss-ledger progression.</div><div class="row" style="margin-top:8px"><button class="tg" id="tvcOn">Activate TVC +1</button></div>';return}
+ const L=R.ledger;el.innerHTML='<div class="grid"><div>Status<b>'+(L.length?'Ledger active':'Base unit')+'</b></div></div>'}
 $('#tvc').onclick=e=>{if(e.target.id==='tvcOn'){S.prog='tvc';clearMM();sv('bc_set',S);form();render()}};
-/* ---- Stepped D’Alembert ladder panel ---- */
-function ladR(){const el=$('#mm');if(S.prog!=='dal5'){el.innerHTML='<div class="sub">Each level repeats before moving up (1 1 1 1 1, 2 2 2 2 2, and so on). A loss moves one position forward and a win moves one position back, as in D’Alembert.</div><div class="row" style="margin-top:8px"><button class="tg" id="ladOn">Activate Stepped D’Alembert</button></div>';return}
- const rp=Math.max(1,S.rep),p=R.step,lv=Math.floor(p/rp)+1,lim=S.maxLevel>0,n=lim?S.maxLevel*rp:(lv+1)*rp,i0=lim?0:Math.max(0,(lv-2)*rp),seq=i0===0?[]:['<span style="color:var(--mut)">… </span>'];
- for(let i=i0;i<n;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:18px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+'">'+(Math.floor(i/rp)+1)+'</span>'+((i+1)%rp===0&&i<n-1?'<span style="margin:0 6px;color:var(--line)">|</span>':''))}
- el.innerHTML='<div class="grid"><div>Level<b>'+lv+(lim?' of '+S.maxLevel:' (unlimited)')+'</b></div><div>Position<b>'+(p+1)+(lim?' / '+n:'')+'</b></div><div>Next bet<b>'+(baseNow()*lv).toFixed(2)+'</b></div></div><div style="margin:8px 0;line-height:2">'+seq.join('')+(lim?'':'<span style="color:var(--mut)"> …</span>')+'</div><div class="sub">Loss: one position forward. Win: one position back. '+(lim?'Past the last position the ladder resets. Largest bet: '+(S.unit*S.maxLevel).toFixed(2)+'.':'No level cap: only your stop-loss, max bet % of bankroll, and tilt alert limit the ladder.')+' This reshapes risk only; the house edge is unchanged.</div>'}
+function ladR(){const el=$('#mm');if(S.prog!=='dal5'){el.innerHTML='<div class="sub">Stepped D’Alembert.</div><div class="row" style="margin-top:8px"><button class="tg" id="ladOn">Activate Stepped D’Alembert</button></div>';return}}
 $('#mm').onclick=e=>{if(e.target.id==='ladOn'){S.prog='dal5';clearMM();sv('bc_set',S);form();render()}};
-/* ---- 1-1-2-2-3-3 step system panel ---- */
-function cyR(){const el=$('#cy');if(S.prog!=='cyc2'){el.innerHTML='<div class="sub">Steps climb in pairs (1 1 2 2 3 3 … 10 10). A loss moves one step up and a win one step down. The moment the running cycle P&amp;L turns positive, the system resets to step 1 and the cycle restarts. A tie keeps the bet.</div><div class="row" style="margin-top:8px"><button class="tg" id="cyOn">Activate 1-1-2-2-3-3</button></div>';return}
- const p=R.step,mult=Math.floor(p/2)+1,b=baseNow(),sg=x=>(x>=0?'+':'')+x.toFixed(2),seq=[];
- for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+'">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
- el.innerHTML='<div class="grid"><div>Step<b>'+(p+1)+' / 20</b></div><div>Multiplier<b>'+mult+'×</b></div><div>Next bet<b>'+(b*mult).toFixed(2)+'</b></div><div>Cycle P&amp;L<b class="'+(R.cyc>=0?'win':'loss')+'">'+sg(R.cyc)+'</b></div><div>Net P&amp;L (all shoes)<b class="'+(((MM.net||0)+R.pnl)>=0?'win':'loss')+'">'+sg((MM.net||0)+R.pnl)+'</b></div><div>Largest bet<b>'+(b*10).toFixed(2)+'</b></div></div><div style="margin:8px 0;line-height:2">'+seq.join('')+'</div><div class="sub">'+(R.evt||'No bets yet this shoe.')+'</div><div class="sub" style="margin-top:6px">At step 20 a further loss holds the bet at 10×. Cycle P&amp;L uses real payouts, so a Banker win (5% commission) pays slightly less than the bet. This reshapes risk only; the house edge is unchanged.</div>'}
+function cyR(){const el=$('#cy');if(S.prog!=='cyc2'){el.innerHTML='<div class="sub">1-1-2-2-3-3 System.</div><div class="row" style="margin-top:8px"><button class="tg" id="cyOn">Activate 1-1-2-2-3-3</button></div>';return}
+const p=R.step,mult=Math.floor(p/2)+1,b=baseNow(),sg=x=>(x>=0?'+':'')+x.toFixed(2),seq=[];
+for(let i=0;i<20;i++){const cur=i===p;seq.push('<span style="display:inline-block;width:20px;text-align:center;font-weight:'+(cur?800:500)+';color:'+(cur?'var(--gold)':'var(--mut)')+';'+(cur?'border-bottom:2px solid var(--gold)':'')+'">'+(Math.floor(i/2)+1)+'</span>'+(i%2?'<span style="margin:0 5px;color:var(--line)">|</span>':''))}
+el.innerHTML='<div class="grid"><div>Step<b>'+(p+1)+' / 20</b></div><div>Multiplier<b>'+mult+'×</b></div><div>Next bet<b>'+(b*mult).toFixed(2)+'</b></div><div>Cycle P&amp;L<b class="'+(R.cyc>=0?'win':'loss')+'">'+sg(R.cyc)+'</b></div><div>Net P&amp;L (all shoes)<b class="'+(((MM.net||0)+R.pnl)>=0?'win':'loss')+'">'+sg((MM.net||0)+R.pnl)+'</b></div><div>Largest bet<b>'+(b*10).toFixed(2)+'</b></div></div><div style="margin:8px 0;line-height:2">'+seq.join('')+'</div><div class="sub">'+(R.evt||'No bets yet this shoe.')+'</div><div class="sub" style="margin-top:6px">At step 20 a further loss holds the bet at 10×. Cycle P&amp;L uses real payouts, so a Banker win (5% commission) pays slightly less than the bet. This reshapes risk only; the house edge is unchanged.</div>'}
 $('#cy').onclick=e=>{if(e.target.id==='cyOn'){S.prog='cyc2';clearMM();sv('bc_set',S);form();render()}};
 matchMedia('(prefers-color-scheme:light)').onchange=render;addEventListener('resize',render);
+form();render();bootTrain();
 </script></body></html>
